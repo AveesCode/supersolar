@@ -10,15 +10,15 @@
     <style>
         .locked { opacity: 0.6; grayscale: 100%; pointer-events: none; }
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #111827; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
 
     <div id="loader" class="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center z-50">
         <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-yellow-500 mb-4"></div>
-        <p class="text-yellow-500 font-bold text-xs tracking-widest uppercase">Initializing Tracker...</p>
+        <p class="text-yellow-500 font-bold text-xs tracking-widest uppercase">Syncing Super SOLAR 2026...</p>
     </div>
 
     <div class="container mx-auto px-4 py-8">
@@ -31,31 +31,27 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- LEFT: PUBLIC STANDINGS -->
+            <!-- STANDINGS -->
             <div class="lg:col-span-4">
                 <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-2xl sticky top-8">
                     <h2 class="text-xl font-black mb-6 flex items-center gap-2">
                         <span class="text-2xl text-yellow-500">🏆</span> STANDINGS
                     </h2>
-                    <div id="leaderboard-container" class="space-y-2">
-                        <!-- Rankings injected here -->
-                    </div>
+                    <div id="leaderboard-container" class="space-y-2"></div>
                 </div>
             </div>
 
-            <!-- RIGHT: MAIN APP -->
+            <!-- MAIN CONTENT -->
             <div class="lg:col-span-8 space-y-6">
                 
-                <!-- LOGIN -->
                 <div id="login-screen" class="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-xl">
                     <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4 text-center">Participant Access</h3>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <input type="password" id="login-code" placeholder="Enter Login Code" class="flex-1 p-4 rounded-xl bg-slate-950 border border-slate-800 outline-none focus:border-yellow-500 transition-all text-center sm:text-left">
+                        <input type="password" id="login-code" placeholder="Enter Login Code" class="flex-1 p-4 rounded-xl bg-slate-950 border border-slate-800 outline-none focus:border-yellow-500 transition-all">
                         <button onclick="handleLogin()" class="bg-yellow-500 hover:bg-yellow-400 text-black px-10 py-4 rounded-xl font-black transition-all shadow-lg">ENTER</button>
                     </div>
                 </div>
 
-                <!-- APP CONTENT -->
                 <div id="app-content" class="hidden space-y-6">
                     <div class="flex justify-between items-center bg-slate-900 p-6 rounded-2xl border border-slate-800">
                         <div>
@@ -67,27 +63,31 @@
 
                     <!-- ADMIN PANEL -->
                     <div id="admin-panel" class="hidden space-y-4">
-                        
-                        <!-- ADD PARTICIPANT -->
+                        <!-- USER MANAGEMENT -->
                         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                            <h3 class="text-yellow-500 font-black text-xs uppercase tracking-widest mb-4">Add New Participant</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                                <input type="text" id="new-first" placeholder="First Name" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm outline-none focus:border-blue-500">
-                                <input type="text" id="new-last" placeholder="Last Name" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm outline-none focus:border-blue-500">
-                                <input type="text" id="new-code" placeholder="Login Code" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm outline-none focus:border-blue-500 uppercase">
-                                <button onclick="adminAddUser()" class="bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-xs uppercase">Register</button>
+                            <h3 class="text-yellow-500 font-black text-xs uppercase tracking-widest mb-4">Participant Management</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4">
+                                <input type="text" id="new-first" placeholder="First" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <input type="text" id="new-last" placeholder="Last" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <input type="text" id="new-code" placeholder="Code" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm uppercase">
+                                <button onclick="adminAddUser()" class="bg-blue-600 p-2 rounded font-bold text-xs">ADD</button>
+                            </div>
+                            <div id="admin-user-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-40 overflow-y-auto"></div>
+                        </div>
+
+                        <!-- MATCH DETAILS UPDATER -->
+                        <div class="bg-blue-900/10 border border-blue-500/30 p-6 rounded-2xl">
+                            <h3 class="text-blue-400 font-black text-xs uppercase tracking-widest mb-4">Update Match Info (Names/Venues)</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <input type="number" id="adm-match-id" placeholder="Match #" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <input type="text" id="adm-team-a" placeholder="Team A" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <input type="text" id="adm-team-b" placeholder="Team B" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <input type="text" id="adm-venue" placeholder="Venue" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <button onclick="adminUpdateMatchData()" class="bg-blue-600 rounded font-bold text-xs uppercase">Save Info</button>
                             </div>
                         </div>
 
-                        <!-- ROSTER MANAGEMENT -->
-                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                            <h3 class="text-slate-400 font-black text-xs uppercase tracking-widest mb-4">Participant Roster (Admin Only)</h3>
-                            <div id="admin-user-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <!-- Users injected here -->
-                            </div>
-                        </div>
-
-                        <!-- MATCH RESULTS -->
+                        <!-- RESULT SETTER -->
                         <div class="bg-red-950/20 border border-red-900/40 p-6 rounded-2xl">
                             <h3 class="text-red-500 font-black text-xs uppercase tracking-widest mb-4">Set Official Results</h3>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -98,21 +98,19 @@
                                     <option value="B">Team B</option>
                                     <option value="Tie">Draw</option>
                                 </select>
-                                <button onclick="adminSetResult()" class="bg-red-600 hover:bg-red-500 rounded-lg font-bold text-xs uppercase">Submit</button>
+                                <button onclick="adminSetResult()" class="bg-red-600 hover:bg-red-500 rounded-lg font-bold text-xs uppercase">Submit Result</button>
                             </div>
                         </div>
                     </div>
 
-                    <div id="match-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Matches injected here -->
-                    </div>
+                    <div id="match-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURATION (PASTE YOUR CONFIG HERE) ---
+        // --- FIREBASE CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyCmCTr3iMuL85IYam88BE3JIGJO4OVsscU",
   authDomain: "worldcup2026-7bd64.firebaseapp.com",
@@ -123,16 +121,26 @@ const firebaseConfig = {
   appId: "1:138339199903:web:db4d8b6295f65ae2062baa"
 };
 
+
         const ADMIN_CODE = "ADMIN2026";
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let state = { matches: [], userData: {}, currentUser: null };
 
+        // INITIALIZE APP & SCHEDULE
         async function init() {
-            db.ref('/').on('value', (snapshot) => {
+            db.ref('/').on('value', async (snapshot) => {
                 const data = snapshot.val() || {};
-                state.matches = data.matches || [];
+                
+                if (!data.matches) {
+                    const fullSchedule = generateFullSchedule();
+                    await db.ref('matches').set(fullSchedule);
+                    state.matches = fullSchedule;
+                } else {
+                    state.matches = data.matches;
+                }
+
                 state.userData = data.users || {};
                 renderStandings();
                 if (state.currentUser) renderApp();
@@ -140,42 +148,62 @@ const firebaseConfig = {
             });
         }
 
-        function calculateScores() {
-            return Object.entries(state.userData).map(([id, user]) => {
-                let score = 0;
-                const picks = user.picks || {};
-                state.matches.forEach(m => {
-                    if (m && m.res && picks[m.id] === m.res) score++;
-                });
-                return { name: `${user.firstName} ${user.lastName}`, score, id };
-            }).sort((a, b) => b.score - a.score);
+        function generateFullSchedule() {
+            const m = [];
+            // Group Stage (known matches)
+            const base = [
+                { id: 1, a: "Mexico", b: "South Africa", v: "Estadio Azteca", c: "Mexico City", t: "2026-06-11T15:00", type: "Group" },
+                { id: 2, a: "South Korea", b: "Czechia", v: "Estadio Akron", c: "Guadalajara", t: "2026-06-11T22:00", type: "Group" },
+                { id: 3, a: "Canada", b: "Bosnia & Herz.", v: "BMO Field", c: "Toronto", t: "2026-06-12T15:00", type: "Group" },
+                { id: 4, a: "USA", b: "Paraguay", v: "SoFi Stadium", c: "Los Angeles", t: "2026-06-12T21:00", type: "Group" },
+                { id: 5, a: "Qatar", b: "Switzerland", v: "Levi's Stadium", c: "San Francisco", t: "2026-06-13T15:00", type: "Group" },
+                { id: 6, a: "Brazil", b: "Morocco", v: "MetLife Stadium", c: "NY/NJ", t: "2026-06-13T18:00", type: "Group" },
+                { id: 7, a: "Haiti", b: "Scotland", v: "Gillette Stadium", c: "Boston", t: "2026-06-13T21:00", type: "Group" },
+                { id: 8, a: "Australia", b: "Türkiye", v: "BC Place", c: "Vancouver", t: "2026-06-14T00:00", type: "Group" },
+                { id: 9, a: "Germany", b: "Curaçao", v: "NRG Stadium", c: "Houston", t: "2026-06-14T13:00", type: "Group" },
+                { id: 10, a: "Netherlands", b: "Japan", v: "AT&T Stadium", c: "Dallas", t: "2026-06-14T16:00", type: "Group" },
+                { id: 11, a: "Ivory Coast", b: "Ecuador", v: "Lincoln Financial", c: "Philadelphia", t: "2026-06-14T19:00", type: "Group" },
+                { id: 12, a: "Sweden", b: "Tunisia", v: "Estadio BBVA", c: "Monterrey", t: "2026-06-14T22:00", type: "Group" },
+                { id: 13, a: "Spain", b: "Cape Verde", v: "Mercedes-Benz", c: "Atlanta", t: "2026-06-15T12:00", type: "Group" },
+                { id: 14, a: "Belgium", b: "Egypt", v: "Lumen Field", c: "Seattle", t: "2026-06-15T15:00", type: "Group" },
+                { id: 15, a: "Saudi Arabia", b: "Uruguay", v: "Hard Rock", c: "Miami", t: "2026-06-15T18:00", type: "Group" },
+                { id: 16, a: "Iran", b: "New Zealand", v: "SoFi Stadium", c: "Los Angeles", t: "2026-06-15T21:00", type: "Group" },
+                { id: 17, a: "France", b: "Senegal", v: "MetLife Stadium", c: "NY/NJ", t: "2026-06-16T15:00", type: "Group" },
+                { id: 18, a: "Iraq", b: "Norway", v: "Gillette Stadium", c: "Boston", t: "2026-06-16T18:00", type: "Group" },
+                { id: 19, a: "Argentina", b: "Algeria", v: "Arrowhead", c: "Kansas City", t: "2026-06-16T21:00", type: "Group" },
+                { id: 20, a: "Austria", b: "Jordan", v: "Levi's Stadium", c: "San Francisco", t: "2026-06-17T00:00", type: "Group" },
+                { id: 21, a: "Portugal", b: "Congo DR", v: "NRG Stadium", c: "Houston", t: "2026-06-17T13:00", type: "Group" },
+                { id: 22, a: "England", b: "Croatia", v: "AT&T Stadium", c: "Dallas", t: "2026-06-17T16:00", type: "Group" },
+                { id: 23, a: "Ghana", b: "Panama", v: "BMO Field", c: "Toronto", t: "2026-06-17T19:00", type: "Group" },
+                { id: 24, a: "Mexico", b: "A3", v: "Estadio BBVA", c: "Monterrey", t: "2026-06-18T22:00", type: "Group" }
+            ];
+
+            for(let i=0; i<=104; i++) {
+                if (i===0) { m[0] = null; continue; }
+                const found = base.find(x => x.id === i);
+                if (found) { m[i] = found; }
+                else {
+                    m[i] = { 
+                        id: i, a: "TBD", b: "TBD", 
+                        v: i > 72 ? "Knockout Venue" : "Group Venue", 
+                        c: "TBD City", 
+                        t: i > 72 ? "2026-06-28T12:00" : "2026-06-20T12:00", 
+                        type: i > 72 ? "Playoff" : "Group" 
+                    };
+                }
+            }
+            return m;
         }
 
-        function renderStandings() {
-            const container = document.getElementById('leaderboard-container');
-            const rankings = calculateScores();
-            container.innerHTML = rankings.map((p, idx) => `
-                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
-                    <div class="flex items-center gap-3">
-                        <span class="text-[10px] font-bold text-slate-600 w-4">${idx+1}</span>
-                        <span class="font-bold text-sm ${idx === 0 ? 'text-yellow-500' : 'text-slate-300'}">${p.name}</span>
-                    </div>
-                    <span class="text-xs font-black bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">${p.score} PTS</span>
-                </div>
-            `).join('');
-        }
-
+        // CORE APP LOGIC
         function handleLogin() {
             const code = document.getElementById('login-code').value.trim().toUpperCase();
             if (code === ADMIN_CODE) {
-                state.currentUser = { firstName: "System", lastName: "Admin", role: 'admin', code: ADMIN_CODE };
+                state.currentUser = { firstName: "Admin", lastName: "Solar", role: 'admin', code: ADMIN_CODE };
             } else {
                 const userEntry = Object.entries(state.userData).find(([id, u]) => u.code === code);
-                if (userEntry) {
-                    state.currentUser = { ...userEntry[1], id: userEntry[0], role: 'user' };
-                } else {
-                    alert("Unauthorized Login Code"); return;
-                }
+                if (userEntry) state.currentUser = { ...userEntry[1], id: userEntry[0], role: 'user' };
+                else return alert("Invalid Code");
             }
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
@@ -186,34 +214,31 @@ const firebaseConfig = {
             const user = state.currentUser;
             document.getElementById('user-welcome').innerText = `${user.firstName} ${user.lastName}`;
             document.getElementById('user-role-tag').innerText = user.role === 'admin' ? 'Administrator' : 'Participant';
-            
             if (user.role === 'admin') {
                 document.getElementById('admin-panel').classList.remove('hidden');
                 renderAdminUsers();
             }
-
             const container = document.getElementById('match-list');
             const now = new Date();
             const picks = (user.role === 'admin') ? {} : (state.userData[user.id]?.picks || {});
 
             container.innerHTML = state.matches.slice(1).map(m => {
+                if (!m) return '';
                 const kickoff = new Date(m.t);
                 const isLocked = now > kickoff;
                 const userPick = picks[m.id];
-                
                 return `
                     <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 ${isLocked ? 'locked' : ''}">
                         <div class="flex justify-between text-[10px] font-bold text-slate-500 uppercase mb-4">
                             <span>Match #${m.id}</span>
                             <span class="text-yellow-600">${kickoff.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})} ET</span>
                         </div>
+                        <div class="text-[9px] text-slate-600 uppercase mb-4 tracking-tighter">${m.v} • ${m.c}</div>
                         <div class="flex flex-col gap-2">
                             <button onclick="savePick(${m.id}, 'A')" class="flex justify-between p-3 rounded-xl border text-sm font-bold transition-all ${userPick === 'A' ? 'bg-yellow-500 border-yellow-400 text-black' : 'bg-slate-950 border-slate-800 hover:border-slate-600'}">
                                 ${m.a} <span>${m.res === 'A' ? '⭐' : ''}</span>
                             </button>
-                            ${m.type === 'Group' ? `
-                                <button onclick="savePick(${m.id}, 'Tie')" class="p-1 rounded-lg border text-[10px] font-bold ${userPick === 'Tie' ? 'bg-slate-700 border-slate-500' : 'bg-slate-950 border-slate-900'}">DRAW</button>
-                            ` : ''}
+                            ${m.type === 'Group' ? `<button onclick="savePick(${m.id}, 'Tie')" class="p-1 rounded-lg border text-[10px] font-bold ${userPick === 'Tie' ? 'bg-slate-700 border-slate-500' : 'bg-slate-950 border-slate-900'}">DRAW</button>` : ''}
                             <button onclick="savePick(${m.id}, 'B')" class="flex justify-between p-3 rounded-xl border text-sm font-bold transition-all ${userPick === 'B' ? 'bg-yellow-500 border-yellow-400 text-black' : 'bg-slate-950 border-slate-800 hover:border-slate-600'}">
                                 ${m.b} <span>${m.res === 'B' ? '⭐' : ''}</span>
                             </button>
@@ -228,52 +253,66 @@ const firebaseConfig = {
             await db.ref(`users/${state.currentUser.id}/picks/${matchId}`).set(pick);
         }
 
-        // --- ADMIN CONTROLS ---
+        // ADMIN FUNCTIONS
+        async function adminUpdateMatchData() {
+            const id = document.getElementById('adm-match-id').value;
+            const a = document.getElementById('adm-team-a').value;
+            const b = document.getElementById('adm-team-b').value;
+            const v = document.getElementById('adm-venue').value;
+            if(!id) return alert("Enter Match #");
+            const update = {};
+            if(a) update.a = a;
+            if(b) update.b = b;
+            if(v) update.v = v;
+            await db.ref(`matches/${id}`).update(update);
+            alert("Match Updated");
+        }
 
         async function adminAddUser() {
-            const first = document.getElementById('new-first').value.trim();
-            const last = document.getElementById('new-last').value.trim();
-            const code = document.getElementById('new-code').value.trim().toUpperCase();
-            if(!first || !last || !code) return alert("All fields required");
-            
+            const first = document.getElementById('new-first').value;
+            const last = document.getElementById('new-last').value;
+            const code = document.getElementById('new-code').value.toUpperCase();
+            if(!first || !code) return;
             await db.ref('users').push({ firstName: first, lastName: last, code: code, picks: {} });
-            document.getElementById('new-first').value = '';
-            document.getElementById('new-last').value = '';
-            document.getElementById('new-code').value = '';
         }
 
         async function adminDeleteUser(id) {
-            if(confirm("Permanently delete this participant?")) {
-                await db.ref(`users/${id}`).remove();
-            }
+            if(confirm("Delete user?")) await db.ref(`users/${id}`).remove();
         }
 
         function renderAdminUsers() {
-            const container = document.getElementById('admin-user-list');
-            container.innerHTML = Object.entries(state.userData).map(([id, u]) => `
-                <div class="flex justify-between items-center p-3 bg-slate-950 rounded-xl border border-slate-800">
-                    <div>
-                        <p class="text-xs font-bold text-slate-200">${u.firstName} ${u.lastName}</p>
-                        <p class="text-[10px] font-mono text-yellow-500 tracking-tighter">CODE: ${u.code}</p>
-                    </div>
-                    <button onclick="adminDeleteUser('${id}')" class="text-red-500 hover:text-red-400 text-xs p-2">✕</button>
+            const list = document.getElementById('admin-user-list');
+            list.innerHTML = Object.entries(state.userData).map(([id, u]) => `
+                <div class="flex justify-between items-center p-2 bg-slate-950 rounded border border-slate-800 text-[10px]">
+                    <span>${u.firstName} (${u.code})</span>
+                    <button onclick="adminDeleteUser('${id}')" class="text-red-500 px-1">✕</button>
                 </div>
             `).join('');
         }
 
         async function adminSetResult() {
             const id = document.getElementById('res-match-id').value;
-            const winner = document.getElementById('res-winner').value;
-            if(!id || !winner) return alert("Match ID and Winner required");
-            await db.ref(`matches/${id}/res`).set(winner);
+            const res = document.getElementById('res-winner').value;
+            if(id && res) await db.ref(`matches/${id}/res`).set(res);
         }
 
-        function logout() {
-            state.currentUser = null;
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('app-content').classList.add('hidden');
+        function renderStandings() {
+            const container = document.getElementById('leaderboard-container');
+            const rankings = Object.entries(state.userData).map(([id, user]) => {
+                let score = 0;
+                const picks = user.picks || {};
+                state.matches.forEach(m => { if (m && m.res && picks[m.id] === m.res) score++; });
+                return { name: `${user.firstName} ${user.lastName}`, score };
+            }).sort((a, b) => b.score - a.score);
+            container.innerHTML = rankings.map((p, i) => `
+                <div class="flex justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm">
+                    <span class="${i===0 ? 'text-yellow-500 font-bold' : ''}">${i+1}. ${p.name}</span>
+                    <span class="font-black">${p.score} PTS</span>
+                </div>
+            `).join('');
         }
 
+        function logout() { location.reload(); }
         init();
     </script>
 </body>
