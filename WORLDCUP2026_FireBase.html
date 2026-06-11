@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Cup 2026 Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen font-sans">
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500 mb-4"></div>
+        <p>Syncing with Stadiums...</p>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="hidden flex items-center justify-center h-screen">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-blue-900">
+            <h1 class="text-3xl font-black mb-2 text-center text-blue-500">FIFA 2026</h1>
+            <p class="text-gray-400 text-center mb-8 italic text-sm">Team Predictor Portal</p>
+            <input type="password" id="login-code" placeholder="Enter Login Code" class="w-full p-4 rounded bg-gray-700 border border-gray-600 mb-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+            <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 p-4 rounded-lg font-bold text-lg shadow-lg">Login</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="app-content" class="hidden container mx-auto px-4 py-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-gray-800 pb-6">
+            <div>
+                <h2 id="user-welcome" class="text-2xl font-bold text-blue-400"></h2>
+                <p id="user-role-label" class="text-xs uppercase tracking-widest text-gray-500"></p>
+            </div>
+            <div class="flex gap-4 mt-4 md:mt-0">
+                <button onclick="location.reload()" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-sm border border-gray-700">Refresh Feed</button>
+                <button onclick="logout()" class="bg-red-900/40 hover:bg-red-900 px-4 py-2 rounded text-sm text-red-300 border border-red-800">Logout</button>
+            </div>
+        </header>
+
+        <!-- Admin: Update TBD Teams -->
+        <div id="admin-panel" class="hidden bg-blue-900/20 border border-blue-500/30 p-6 rounded-2xl mb-10">
+            <h3 class="text-blue-400 font-bold mb-4 flex items-center">
+                <span class="mr-2">🛠️</span> Admin: Update TBD Matches
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input type="number" id="adm-match-id" placeholder="Match #" class="bg-gray-800 p-3 rounded border border-gray-700">
+                <input type="text" id="adm-team-a" placeholder="Team A Name" class="bg-gray-800 p-3 rounded border border-gray-700">
+                <input type="text" id="adm-team-b" placeholder="Team B Name" class="bg-gray-800 p-3 rounded border border-gray-700">
+                <button onclick="adminUpdateTeams()" class="bg-blue-600 hover:bg-blue-500 rounded font-bold">Update Teams</button>
+            </div>
+        </div>
+
+        <div id="match-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Matches injected here -->
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+	const firebaseConfig = {
+  apiKey: "AIzaSyCmCTr3iMuL85IYam88BE3JIGJO4OVsscU",
+  authDomain: "worldcup2026-7bd64.firebaseapp.com",
+  databaseURL: "https://worldcup2026-7bd64-default-rtdb.firebaseio.com",
+  projectId: "worldcup2026-7bd64",
+  storageBucket: "worldcup2026-7bd64.firebasestorage.app",
+  messagingSenderId: "138339199903",
+  appId: "1:138339199903:web:db4d8b6295f65ae2062baa"
+};
+	
+
+        const ADMIN_CODE = "ADMIN2026";
+        
+        // Initializing Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let state = {
+            matches: [],
+            userData: {},
+            currentUser: null
+        };
+
+        // --- CORE LOGIC ---
+
+        // 1. Initial Data Load
+        async function loadAllData() {
+            const snapshot = await db.ref('/').once('value');
+            const data = snapshot.val() || {};
+            
+            // If database is empty, seed it with the 104 matches
+            if (!data.matches) {
+                const initialMatches = generateInitialMatches();
+                await db.ref('matches').set(initialMatches);
+                state.matches = initialMatches;
+            } else {
+                state.matches = data.matches;
+            }
+            
+            state.userData = data.users || {};
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        function generateInitialMatches() {
+            const matches = [];
+            const schedule = [
+                { id: 1, a: "Mexico", b: "A2", v: "Azteca", c: "Mexico City", t: "2026-06-11T18:00", type: "Group" },
+                { id: 2, a: "Canada", b: "B2", v: "BMO Field", c: "Toronto", t: "2026-06-12T15:00", type: "Group" },
+                { id: 3, a: "USA", b: "C2", v: "SoFi Stadium", c: "LA", t: "2026-06-12T21:00", type: "Group" }
+            ];
+
+            // Fill all 104 slots
+            for(let i=1; i<=104; i++) {
+                const pre = schedule.find(m => m.id === i);
+                matches[i] = pre || {
+                    id: i, a: "TBD", b: "TBD", 
+                    v: "TBD Venue", c: "Host City", 
+                    t: "2026-06-15T12:00", 
+                    type: i <= 72 ? "Group" : "Playoff"
+                };
+            }
+            return matches;
+        }
+
+        // 2. Auth
+        function handleLogin() {
+            const code = document.getElementById('login-code').value.trim();
+            if (code === ADMIN_CODE) {
+                state.currentUser = { name: "Organizer", code: code, role: 'admin' };
+            } else if (code.startsWith("USER") || code.length >= 4) {
+                state.currentUser = { name: `Player ${code}`, code: code, role: 'user' };
+            } else {
+                alert("Invalid Code"); return;
+            }
+            
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            renderApp();
+        }
+
+        // 3. Render
+        function renderApp() {
+            const user = state.currentUser;
+            document.getElementById('user-welcome').innerText = `Welcome, ${user.name}`;
+            document.getElementById('user-role-label').innerText = user.role;
+            
+            if (user.role === 'admin') document.getElementById('admin-panel').classList.remove('hidden');
+
+            const container = document.getElementById('match-list');
+            const now = new Date();
+            const userPicks = state.userData[user.code] || {};
+
+            container.innerHTML = state.matches.slice(1).map(m => {
+                const kickoff = new Date(m.t);
+                const isLocked = now > kickoff;
+                const pick = userPicks[m.id];
+                
+                return `
+                    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow-lg ${isLocked ? 'opacity-50 grayscale pointer-events-none' : ''}">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-[10px] font-bold bg-gray-700 px-2 py-1 rounded text-gray-300">MATCH #${m.id}</span>
+                            <span class="text-xs text-blue-400 font-mono">${kickoff.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})} ET</span>
+                        </div>
+                        
+                        <div class="text-xs text-gray-500 mb-4 uppercase tracking-tighter">${m.v} • ${m.c}</div>
+
+                        <div class="flex flex-col gap-2">
+                            <button onclick="submitPick(${m.id}, 'A')" class="w-full text-left p-3 rounded-lg border ${pick === 'A' ? 'bg-blue-600 border-blue-400' : 'bg-gray-900 border-gray-700 hover:bg-gray-700'} transition-all flex justify-between">
+                                <span>${m.a}</span> ${pick === 'A' ? '✔️' : ''}
+                            </button>
+                            
+                            ${m.type === 'Group' ? `
+                                <button onclick="submitPick(${m.id}, 'Tie')" class="w-full text-center p-2 text-xs rounded-lg border ${pick === 'Tie' ? 'bg-gray-600 border-gray-400' : 'bg-gray-900/50 border-gray-800 hover:bg-gray-700'}">
+                                    DRAW
+                                </button>
+                            ` : ''}
+
+                            <button onclick="submitPick(${m.id}, 'B')" class="w-full text-left p-3 rounded-lg border ${pick === 'B' ? 'bg-blue-600 border-blue-400' : 'bg-gray-900 border-gray-700 hover:bg-gray-700'} transition-all flex justify-between">
+                                <span>${m.b}</span> ${pick === 'B' ? '✔️' : ''}
+                            </button>
+                        </div>
+                        
+                        ${isLocked ? '<div class="text-center text-red-500 text-[10px] font-black mt-3">KICKED OFF - LOCKED</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 4. Data Actions
+        async function submitPick(matchId, pick) {
+            if (state.currentUser.role === 'admin') return;
+            const userCode = state.currentUser.code;
+            
+            // Local Update
+            if (!state.userData[userCode]) state.userData[userCode] = {};
+            state.userData[userCode][matchId] = pick;
+            renderApp();
+
+            // Firebase Update
+            await db.ref(`users/${userCode}/${matchId}`).set(pick);
+        }
+
+        async function adminUpdateTeams() {
+            const id = document.getElementById('adm-match-id').value;
+            const a = document.getElementById('adm-team-a').value;
+            const b = document.getElementById('adm-team-b').value;
+
+            if(!id || !a || !b) return alert("Fill all fields");
+
+            await db.ref(`matches/${id}`).update({ a: a, b: b });
+            alert("Match Updated!");
+            location.reload();
+        }
+
+        function logout() {
+            state.currentUser = null;
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('app-content').classList.add('hidden');
+        }
+
+        // Start the app
+        loadAllData();
+
+    </script>
+</body>
+</html>
