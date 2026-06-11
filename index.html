@@ -122,7 +122,18 @@ const firebaseConfig = {
 };
 
 
-        const ADMIN_CODE = "ADMIN2026";
+        // 1. Replace this with the your chosen password
+        const ADMIN_HASH = "f201083424d58079d343469146f6630f55097476839352e69a9b23555239e99c";
+
+        // 2. Helper function to hash a string
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);                    
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -196,15 +207,28 @@ const firebaseConfig = {
         }
 
         // CORE APP LOGIC
-        function handleLogin() {
-            const code = document.getElementById('login-code').value.trim().toUpperCase();
-            if (code === ADMIN_CODE) {
-                state.currentUser = { firstName: "Admin", lastName: "Solar", role: 'admin', code: ADMIN_CODE };
+        // 3. Updated Login Function
+        async function handleLogin() {
+            const inputCode = document.getElementById('login-code').value.trim();
+            const hashedInput = await sha256(inputCode.toUpperCase());
+        
+            // Check if hashed input matches the Admin Hash
+            if (hashedInput === ADMIN_HASH) {
+                state.currentUser = { firstName: "System", lastName: "Admin", role: 'admin', code: inputCode };
+                showApp();
             } else {
-                const userEntry = Object.entries(state.userData).find(([id, u]) => u.code === code);
-                if (userEntry) state.currentUser = { ...userEntry[1], id: userEntry[0], role: 'user' };
-                else return alert("Invalid Code");
+                // Check regular participants
+                const userEntry = Object.entries(state.userData).find(([id, u]) => u.code === inputCode.toUpperCase());
+                if (userEntry) {
+                    state.currentUser = { ...userEntry[1], id: userEntry[0], role: 'user' };
+                    showApp();
+                } else {
+                    alert("Unauthorized Login Code");
+                }
             }
+        }
+        
+        function showApp() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
             renderApp();
