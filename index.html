@@ -8,103 +8,97 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        .locked { opacity: 0.5; grayscale: 100%; pointer-events: none; }
-        .gold { color: #fbbf24; }
-        ::-webkit-scrollbar { width: 8px; }
+        .locked { opacity: 0.6; grayscale: 100%; pointer-events: none; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #111827; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
 
-    <!-- Loading Overlay -->
-    <div id="loader" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-yellow-500 mb-4"></div>
-        <p class="text-yellow-500 font-bold tracking-widest">LOADING SUPER SOLAR 2026...</p>
+    <div id="loader" class="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-yellow-500 mb-4"></div>
+        <p class="text-yellow-500 font-bold text-xs tracking-widest uppercase">Initializing Tracker...</p>
     </div>
 
     <div class="container mx-auto px-4 py-8">
-        <!-- Header Section -->
-        <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500">
                 Super SOLAR 2026
             </h1>
-            <p class="text-gray-400 font-bold uppercase tracking-[0.3em] text-sm mt-2">FIFA 2026 PREDICTION TRACKER</p>
+            <p class="text-slate-500 font-bold uppercase tracking-[0.4em] text-[10px] mt-2">FIFA 2026 PREDICTION TRACKER</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- LEFT COLUMN: LEADERBOARD (Public) -->
+            <!-- LEFT: PUBLIC STANDINGS -->
             <div class="lg:col-span-4">
-                <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-2xl sticky top-8">
+                <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-2xl sticky top-8">
                     <h2 class="text-xl font-black mb-6 flex items-center gap-2">
-                        <span class="text-2xl">🏆</span> LEADERBOARD
+                        <span class="text-2xl text-yellow-500">🏆</span> STANDINGS
                     </h2>
-                    <div id="leaderboard-container" class="space-y-3">
-                        <!-- Leaderboard items injected here -->
-                        <p class="text-gray-500 italic text-sm">Calculating rankings...</p>
-                    </div>
-                    <div class="mt-6 pt-4 border-t border-gray-700 text-[10px] text-gray-500 uppercase tracking-widest text-center">
-                        Points: 1 per correct pick
+                    <div id="leaderboard-container" class="space-y-2">
+                        <!-- Rankings injected here -->
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: AUTH & MATCHES -->
-            <div class="lg:col-span-8">
+            <!-- RIGHT: MAIN APP -->
+            <div class="lg:col-span-8 space-y-6">
                 
-                <!-- Login Box (If not logged in) -->
-                <div id="login-screen" class="bg-gray-800 p-8 rounded-2xl border border-blue-900 shadow-xl mb-10">
-                    <h3 class="text-lg font-bold mb-4">Participant Login</h3>
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <input type="password" id="login-code" placeholder="Enter Login Code" class="flex-1 p-4 rounded-lg bg-gray-900 border border-gray-700 outline-none focus:border-yellow-500 transition-all">
-                        <button onclick="handleLogin()" class="bg-yellow-500 hover:bg-yellow-400 text-black px-8 py-4 rounded-lg font-black transition-all">SIGN IN</button>
+                <!-- LOGIN -->
+                <div id="login-screen" class="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-xl">
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4 text-center">Participant Access</h3>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="password" id="login-code" placeholder="Enter Login Code" class="flex-1 p-4 rounded-xl bg-slate-950 border border-slate-800 outline-none focus:border-yellow-500 transition-all text-center sm:text-left">
+                        <button onclick="handleLogin()" class="bg-yellow-500 hover:bg-yellow-400 text-black px-10 py-4 rounded-xl font-black transition-all shadow-lg">ENTER</button>
                     </div>
                 </div>
 
-                <!-- App Content (Hidden until login) -->
-                <div id="app-content" class="hidden">
-                    <div class="flex justify-between items-end mb-8 bg-gray-800 p-4 rounded-xl border border-gray-700">
+                <!-- APP CONTENT -->
+                <div id="app-content" class="hidden space-y-6">
+                    <div class="flex justify-between items-center bg-slate-900 p-6 rounded-2xl border border-slate-800">
                         <div>
-                            <p class="text-xs text-gray-500 uppercase font-bold">Welcome Back</p>
                             <h2 id="user-welcome" class="text-2xl font-black text-yellow-500"></h2>
+                            <p id="user-role-tag" class="text-[10px] uppercase font-bold text-slate-500 tracking-widest"></p>
                         </div>
-                        <button onclick="logout()" class="text-xs text-red-400 hover:underline">Sign Out</button>
+                        <button onclick="logout()" class="px-4 py-2 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-400 text-[10px] font-bold rounded-lg transition-all uppercase">Logout</button>
                     </div>
 
-                    <!-- Admin: Control Center -->
-                    <div id="admin-panel" class="hidden space-y-6 mb-12">
-                        <!-- Result Entry -->
-                        <div class="bg-red-900/10 border border-red-500/30 p-6 rounded-2xl">
-                            <h3 class="text-red-400 font-bold mb-4">🛠️ Set Match Result (Points Calculation)</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                                <input type="number" id="res-match-id" placeholder="Match #" class="bg-gray-900 p-3 rounded border border-gray-700">
-                                <select id="res-winner" class="bg-gray-900 p-3 rounded border border-gray-700">
-                                    <option value="">Select Winner</option>
-                                    <option value="A">Team A Wins</option>
-                                    <option value="B">Team B Wins</option>
-                                    <option value="Tie">Draw (Group Only)</option>
+                    <!-- ADMIN PANEL -->
+                    <div id="admin-panel" class="hidden space-y-4">
+                        
+                        <!-- ADD PARTICIPANT -->
+                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                            <h3 class="text-yellow-500 font-black text-xs uppercase tracking-widest mb-4">Add New Participant</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                <input type="text" id="new-first" placeholder="First Name" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm outline-none focus:border-blue-500">
+                                <input type="text" id="new-last" placeholder="Last Name" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm outline-none focus:border-blue-500">
+                                <input type="text" id="new-code" placeholder="Login Code" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm outline-none focus:border-blue-500 uppercase">
+                                <button onclick="adminAddUser()" class="bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-xs uppercase">Register</button>
+                            </div>
+                        </div>
+
+                        <!-- ROSTER MANAGEMENT -->
+                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                            <h3 class="text-slate-400 font-black text-xs uppercase tracking-widest mb-4">Participant Roster (Admin Only)</h3>
+                            <div id="admin-user-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <!-- Users injected here -->
+                            </div>
+                        </div>
+
+                        <!-- MATCH RESULTS -->
+                        <div class="bg-red-950/20 border border-red-900/40 p-6 rounded-2xl">
+                            <h3 class="text-red-500 font-black text-xs uppercase tracking-widest mb-4">Set Official Results</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <input type="number" id="res-match-id" placeholder="Match #" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                                <select id="res-winner" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                                    <option value="">Winner?</option>
+                                    <option value="A">Team A</option>
+                                    <option value="B">Team B</option>
+                                    <option value="Tie">Draw</option>
                                 </select>
-                                <button onclick="adminSetResult()" class="bg-red-600 hover:bg-red-500 rounded font-bold col-span-2">Update Result</button>
-                            </div>
-                        </div>
-
-                        <!-- Match Update -->
-                        <div class="bg-blue-900/10 border border-blue-500/30 p-6 rounded-2xl">
-                            <h3 class="text-blue-400 font-bold mb-4">📝 Update Team Names</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                                <input type="number" id="adm-match-id" placeholder="Match #" class="bg-gray-900 p-3 rounded border border-gray-700">
-                                <input type="text" id="adm-team-a" placeholder="Team A" class="bg-gray-900 p-3 rounded border border-gray-700 text-sm">
-                                <input type="text" id="adm-team-b" placeholder="Team B" class="bg-gray-900 p-3 rounded border border-gray-700 text-sm">
-                                <button onclick="adminUpdateTeams()" class="bg-blue-600 hover:bg-blue-500 rounded font-bold">Update</button>
-                            </div>
-                        </div>
-
-                        <!-- User List (Codes) -->
-                        <div class="bg-gray-800 border border-gray-600 p-6 rounded-2xl">
-                            <h3 class="text-gray-300 font-bold mb-4">👥 Participant Codes & Access</h3>
-                            <div id="admin-user-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-                                <!-- User codes injected here -->
+                                <button onclick="adminSetResult()" class="bg-red-600 hover:bg-red-500 rounded-lg font-bold text-xs uppercase">Submit</button>
                             </div>
                         </div>
                     </div>
@@ -118,7 +112,7 @@
     </div>
 
     <script>
-        // --- CONFIGURATION (COPY YOUR FIREBASE CONFIG HERE) ---
+        // --- CONFIGURATION (PASTE YOUR CONFIG HERE) ---
 const firebaseConfig = {
   apiKey: "AIzaSyCmCTr3iMuL85IYam88BE3JIGJO4OVsscU",
   authDomain: "worldcup2026-7bd64.firebaseapp.com",
@@ -135,71 +129,54 @@ const firebaseConfig = {
 
         let state = { matches: [], userData: {}, currentUser: null };
 
-        // --- CORE FUNCTIONS ---
-
-        async function loadData() {
+        async function init() {
             db.ref('/').on('value', (snapshot) => {
                 const data = snapshot.val() || {};
                 state.matches = data.matches || [];
                 state.userData = data.users || {};
-                
-                renderLeaderboard();
+                renderStandings();
                 if (state.currentUser) renderApp();
                 document.getElementById('loader').classList.add('hidden');
             });
         }
 
         function calculateScores() {
-            const rankings = [];
-            // We iterate through all users found in the database
-            Object.entries(state.userData).forEach(([code, data]) => {
+            return Object.entries(state.userData).map(([id, user]) => {
                 let score = 0;
-                // If user data is just picks (from previous version), we handle it
-                // We assume data is { picks: { "1": "A"... }, name: "..." }
-                const picks = data.picks || data; 
-                const name = data.name || code;
-
+                const picks = user.picks || {};
                 state.matches.forEach(m => {
-                    if (m && m.res && picks[m.id] === m.res) {
-                        score++;
-                    }
+                    if (m && m.res && picks[m.id] === m.res) score++;
                 });
-                rankings.push({ name, score, code });
-            });
-            return rankings.sort((a, b) => b.score - a.score);
+                return { name: `${user.firstName} ${user.lastName}`, score, id };
+            }).sort((a, b) => b.score - a.score);
         }
 
-        function renderLeaderboard() {
+        function renderStandings() {
             const container = document.getElementById('leaderboard-container');
             const rankings = calculateScores();
-
-            container.innerHTML = rankings.map((player, index) => `
-                <div class="flex items-center justify-between p-3 rounded-lg ${index === 0 ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-gray-900/50'}">
+            container.innerHTML = rankings.map((p, idx) => `
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
                     <div class="flex items-center gap-3">
-                        <span class="w-6 text-sm font-bold text-gray-500">#${index + 1}</span>
-                        <span class="font-bold ${index === 0 ? 'text-yellow-500' : 'text-gray-200'}">${player.name}</span>
+                        <span class="text-[10px] font-bold text-slate-600 w-4">${idx+1}</span>
+                        <span class="font-bold text-sm ${idx === 0 ? 'text-yellow-500' : 'text-slate-300'}">${p.name}</span>
                     </div>
-                    <span class="bg-gray-800 px-3 py-1 rounded-full text-xs font-black text-yellow-500">${player.score} PTS</span>
+                    <span class="text-xs font-black bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">${p.score} PTS</span>
                 </div>
-            `).join('') || '<p class="text-gray-500 text-center py-4">No data yet</p>';
+            `).join('');
         }
 
         function handleLogin() {
-            const code = document.getElementById('login-code').value.trim();
+            const code = document.getElementById('login-code').value.trim().toUpperCase();
             if (code === ADMIN_CODE) {
-                state.currentUser = { name: "Organizer", code: code, role: 'admin' };
-            } else if (state.userData[code]) {
-                state.currentUser = { ...state.userData[code], code: code, role: 'user' };
+                state.currentUser = { firstName: "System", lastName: "Admin", role: 'admin', code: ADMIN_CODE };
             } else {
-                // Auto-create user if they have a code but aren't in DB yet (Team of 15 logic)
-                if(code.length > 3) {
-                    state.currentUser = { name: `Player ${code}`, code: code, role: 'user' };
-                    db.ref(`users/${code}/name`).set(state.currentUser.name);
+                const userEntry = Object.entries(state.userData).find(([id, u]) => u.code === code);
+                if (userEntry) {
+                    state.currentUser = { ...userEntry[1], id: userEntry[0], role: 'user' };
                 } else {
-                    alert("Invalid Login Code"); return;
+                    alert("Unauthorized Login Code"); return;
                 }
             }
-            
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
             renderApp();
@@ -207,87 +184,88 @@ const firebaseConfig = {
 
         function renderApp() {
             const user = state.currentUser;
-            document.getElementById('user-welcome').innerText = user.name;
+            document.getElementById('user-welcome').innerText = `${user.firstName} ${user.lastName}`;
+            document.getElementById('user-role-tag').innerText = user.role === 'admin' ? 'Administrator' : 'Participant';
             
             if (user.role === 'admin') {
                 document.getElementById('admin-panel').classList.remove('hidden');
-                renderAdminUserList();
+                renderAdminUsers();
             }
 
             const container = document.getElementById('match-list');
             const now = new Date();
-            const userPicks = (state.userData[user.code]?.picks) || (state.userData[user.code]) || {};
+            const picks = (user.role === 'admin') ? {} : (state.userData[user.id]?.picks || {});
 
             container.innerHTML = state.matches.slice(1).map(m => {
                 const kickoff = new Date(m.t);
                 const isLocked = now > kickoff;
-                const pick = userPicks[m.id];
-                const result = m.res; // Actual winner
+                const userPick = picks[m.id];
                 
                 return `
-                    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow-lg ${isLocked ? 'opacity-60' : ''}">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-[10px] font-bold bg-gray-900 px-2 py-1 rounded text-gray-500 uppercase">Match #${m.id}</span>
-                            <span class="text-[10px] text-yellow-600 font-bold uppercase">${kickoff.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})} ET</span>
+                    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 ${isLocked ? 'locked' : ''}">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-500 uppercase mb-4">
+                            <span>Match #${m.id}</span>
+                            <span class="text-yellow-600">${kickoff.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})} ET</span>
                         </div>
-                        
-                        <div class="text-[10px] text-gray-500 mb-4 uppercase tracking-widest">${m.v} • ${m.c}</div>
-
                         <div class="flex flex-col gap-2">
-                            <button onclick="submitPick(${m.id}, 'A')" ${isLocked ? 'disabled' : ''} class="w-full text-left p-3 rounded-lg border ${pick === 'A' ? 'bg-yellow-600 border-yellow-400' : 'bg-gray-900 border-gray-700 hover:border-gray-500'} transition-all flex justify-between items-center">
-                                <span class="font-bold text-sm uppercase">${m.a}</span>
-                                ${result === 'A' ? '⭐' : (pick === 'A' ? '✔️' : '')}
+                            <button onclick="savePick(${m.id}, 'A')" class="flex justify-between p-3 rounded-xl border text-sm font-bold transition-all ${userPick === 'A' ? 'bg-yellow-500 border-yellow-400 text-black' : 'bg-slate-950 border-slate-800 hover:border-slate-600'}">
+                                ${m.a} <span>${m.res === 'A' ? '⭐' : ''}</span>
                             </button>
-                            
                             ${m.type === 'Group' ? `
-                                <button onclick="submitPick(${m.id}, 'Tie')" ${isLocked ? 'disabled' : ''} class="w-full text-center p-1 text-[10px] rounded-lg border ${pick === 'Tie' ? 'bg-gray-600 border-gray-400' : 'bg-gray-900/50 border-gray-800 hover:border-gray-600'}">
-                                    DRAW ${result === 'Tie' ? '⭐' : ''}
-                                </button>
+                                <button onclick="savePick(${m.id}, 'Tie')" class="p-1 rounded-lg border text-[10px] font-bold ${userPick === 'Tie' ? 'bg-slate-700 border-slate-500' : 'bg-slate-950 border-slate-900'}">DRAW</button>
                             ` : ''}
-
-                            <button onclick="submitPick(${m.id}, 'B')" ${isLocked ? 'disabled' : ''} class="w-full text-left p-3 rounded-lg border ${pick === 'B' ? 'bg-yellow-600 border-yellow-400' : 'bg-gray-900 border-gray-700 hover:border-gray-500'} transition-all flex justify-between items-center">
-                                <span class="font-bold text-sm uppercase">${m.b}</span>
-                                ${result === 'B' ? '⭐' : (pick === 'B' ? '✔️' : '')}
+                            <button onclick="savePick(${m.id}, 'B')" class="flex justify-between p-3 rounded-xl border text-sm font-bold transition-all ${userPick === 'B' ? 'bg-yellow-500 border-yellow-400 text-black' : 'bg-slate-950 border-slate-800 hover:border-slate-600'}">
+                                ${m.b} <span>${m.res === 'B' ? '⭐' : ''}</span>
                             </button>
                         </div>
-                        
-                        ${isLocked ? `<div class="text-center mt-3 text-[10px] font-black ${result ? 'text-green-500' : 'text-red-500'} uppercase tracking-widest">${result ? 'Finalized' : 'In Progress / Locked'}</div>` : ''}
                     </div>
                 `;
             }).join('');
         }
 
-        async function submitPick(matchId, pick) {
+        async function savePick(matchId, pick) {
             if (state.currentUser.role === 'admin') return;
-            await db.ref(`users/${state.currentUser.code}/picks/${matchId}`).set(pick);
+            await db.ref(`users/${state.currentUser.id}/picks/${matchId}`).set(pick);
         }
 
-        function renderAdminUserList() {
+        // --- ADMIN CONTROLS ---
+
+        async function adminAddUser() {
+            const first = document.getElementById('new-first').value.trim();
+            const last = document.getElementById('new-last').value.trim();
+            const code = document.getElementById('new-code').value.trim().toUpperCase();
+            if(!first || !last || !code) return alert("All fields required");
+            
+            await db.ref('users').push({ firstName: first, lastName: last, code: code, picks: {} });
+            document.getElementById('new-first').value = '';
+            document.getElementById('new-last').value = '';
+            document.getElementById('new-code').value = '';
+        }
+
+        async function adminDeleteUser(id) {
+            if(confirm("Permanently delete this participant?")) {
+                await db.ref(`users/${id}`).remove();
+            }
+        }
+
+        function renderAdminUsers() {
             const container = document.getElementById('admin-user-list');
-            container.innerHTML = Object.entries(state.userData).map(([code, data]) => `
-                <div class="p-2 bg-gray-900 rounded border border-gray-700 flex justify-between">
-                    <span class="text-gray-400">${data.name || 'Anonymous'}</span>
-                    <span class="text-yellow-500 font-bold">${code}</span>
+            container.innerHTML = Object.entries(state.userData).map(([id, u]) => `
+                <div class="flex justify-between items-center p-3 bg-slate-950 rounded-xl border border-slate-800">
+                    <div>
+                        <p class="text-xs font-bold text-slate-200">${u.firstName} ${u.lastName}</p>
+                        <p class="text-[10px] font-mono text-yellow-500 tracking-tighter">CODE: ${u.code}</p>
+                    </div>
+                    <button onclick="adminDeleteUser('${id}')" class="text-red-500 hover:text-red-400 text-xs p-2">✕</button>
                 </div>
             `).join('');
         }
 
-        // --- ADMIN ACTIONS ---
         async function adminSetResult() {
             const id = document.getElementById('res-match-id').value;
-            const res = document.getElementById('res-winner').value;
-            if(!id || !res) return alert("Select Match and Result");
-            await db.ref(`matches/${id}/res`).set(res);
-            alert(`Match ${id} Result Saved!`);
-        }
-
-        async function adminUpdateTeams() {
-            const id = document.getElementById('adm-match-id').value;
-            const a = document.getElementById('adm-team-a').value;
-            const b = document.getElementById('adm-team-b').value;
-            if(!id || !a || !b) return alert("Fill all fields");
-            await db.ref(`matches/${id}`).update({ a: a, b: b });
-            alert("Teams Updated");
+            const winner = document.getElementById('res-winner').value;
+            if(!id || !winner) return alert("Match ID and Winner required");
+            await db.ref(`matches/${id}/res`).set(winner);
         }
 
         function logout() {
@@ -296,7 +274,7 @@ const firebaseConfig = {
             document.getElementById('app-content').classList.add('hidden');
         }
 
-        loadData();
+        init();
     </script>
 </body>
 </html>
