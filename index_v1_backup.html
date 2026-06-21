@@ -75,26 +75,17 @@
                             <div id="admin-user-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-40 overflow-y-auto"></div>
                         </div>
 
-                    <!-- MATCH DETAILS UPDATER -->
-                    <div class="bg-blue-900/10 border border-blue-500/30 p-6 rounded-2xl">
-                        <h3 class="text-blue-400 font-black text-xs uppercase tracking-widest mb-4">Update Match Info</h3>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
-                            <input type="number" id="adm-match-id" placeholder="Match #" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                            <input type="text" id="adm-team-a" placeholder="Team A" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                            <input type="text" id="adm-team-b" placeholder="Team B" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                            <input type="text" id="adm-venue" placeholder="Venue" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                        <!-- MATCH DETAILS UPDATER -->
+                        <div class="bg-blue-900/10 border border-blue-500/30 p-6 rounded-2xl">
+                            <h3 class="text-blue-400 font-black text-xs uppercase tracking-widest mb-4">Update Match Info (Names/Venues)</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <input type="number" id="adm-match-id" placeholder="Match #" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <input type="text" id="adm-team-a" placeholder="Team A" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <input type="text" id="adm-team-b" placeholder="Team B" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <input type="text" id="adm-venue" placeholder="Venue" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
+                                <button onclick="adminUpdateMatchData()" class="bg-blue-600 rounded font-bold text-xs uppercase">Save Info</button>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <input type="text" id="adm-city" placeholder="City" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                            <input type="datetime-local" id="adm-time" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm text-slate-400">
-                            <select id="adm-type" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                                <option value="">Type?</option>
-                                <option value="Group">Group</option>
-                                <option value="Playoff">Playoff</option>
-                            </select>
-                            <button onclick="adminUpdateMatchData()" class="bg-blue-600 rounded font-bold text-xs uppercase">Save All Info</button>
-                        </div>
-                    </div>
 
                         <!-- RESULT SETTER -->
                         <div class="bg-red-950/20 border border-red-900/40 p-6 rounded-2xl">
@@ -292,22 +283,13 @@ const firebaseConfig = {
             const a = document.getElementById('adm-team-a').value;
             const b = document.getElementById('adm-team-b').value;
             const v = document.getElementById('adm-venue').value;
-            const c = document.getElementById('adm-city').value;
-            const t = document.getElementById('adm-time').value;
-            const type = document.getElementById('adm-type').value;
-
             if(!id) return alert("Enter Match #");
-            
             const update = {};
             if(a) update.a = a;
             if(b) update.b = b;
             if(v) update.v = v;
-            if(c) update.c = c;
-            if(t) update.t = t;
-            if(type) update.type = type;
-
             await db.ref(`matches/${id}`).update(update);
-            alert("Match #" + id + " Updated successfully");
+            alert("Match Updated");
         }
 
         async function adminAddUser() {
@@ -332,71 +314,26 @@ const firebaseConfig = {
             `).join('');
         }
 
-        // Set Result + Snapshot Ranks for Movement Indicator
         async function adminSetResult() {
             const id = document.getElementById('res-match-id').value;
             const res = document.getElementById('res-winner').value;
-            if(!id || !res) return alert("Select Match and Winner");
-
-            // Before updating the score, save current ranks as "previous"
-            const currentRankings = Object.entries(state.userData).map(([uid, user]) => {
-                let score = 0;
-                const picks = user.picks || {};
-                state.matches.forEach(m => { if (m && m.res && picks[m.id] === m.res) score++; });
-                return { uid, score };
-            }).sort((a, b) => b.score - a.score);
-
-            // Save previous rank (index + 1) to each user in DB
-            const rankUpdates = {};
-            currentRankings.forEach((item, index) => {
-                rankUpdates[`users/${item.uid}/prevRank`] = index + 1;
-            });
-
-            await db.ref().update(rankUpdates);
-            // Now set the actual result
-            await db.ref(`matches/${id}/res`).set(res);
-            alert("Result set and rankings updated.");
+            if(id && res) await db.ref(`matches/${id}/res`).set(res);
         }
 
-        // Render Standings with Movement Arrows
         function renderStandings() {
             const container = document.getElementById('leaderboard-container');
-            
             const rankings = Object.entries(state.userData).map(([id, user]) => {
                 let score = 0;
                 const picks = user.picks || {};
-                state.matches.forEach(m => { 
-                    if (m && m.res && picks[m.id] === m.res) score++; 
-                });
-                return { 
-                    name: `${user.firstName} ${user.lastName}`, 
-                    score, 
-                    prevRank: user.prevRank || 0 
-                };
+                state.matches.forEach(m => { if (m && m.res && picks[m.id] === m.res) score++; });
+                return { name: `${user.firstName} ${user.lastName}`, score };
             }).sort((a, b) => b.score - a.score);
-
-            container.innerHTML = rankings.map((p, i) => {
-                const currentRank = i + 1;
-                let movementIcon = '<span class="text-slate-700">-</span>'; // No change
-
-                if (p.prevRank !== 0) {
-                    if (currentRank < p.prevRank) {
-                        movementIcon = '<span class="text-green-500 text-xs">▲</span>';
-                    } else if (currentRank > p.prevRank) {
-                        movementIcon = '<span class="text-red-500 text-xs">▼</span>';
-                    }
-                }
-
-                return `
-                    <div class="flex justify-between items-center p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm">
-                        <div class="flex items-center gap-3">
-                            <span class="w-4 text-center">${movementIcon}</span>
-                            <span class="${i === 0 ? 'text-yellow-500 font-bold' : ''}">${currentRank}. ${p.name}</span>
-                        </div>
-                        <span class="font-black">${p.score} PTS</span>
-                    </div>
-                `;
-            }).join('');
+            container.innerHTML = rankings.map((p, i) => `
+                <div class="flex justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm">
+                    <span class="${i===0 ? 'text-yellow-500 font-bold' : ''}">${i+1}. ${p.name}</span>
+                    <span class="font-black">${p.score} PTS</span>
+                </div>
+            `).join('');
         }
 
         function logout() { location.reload(); }

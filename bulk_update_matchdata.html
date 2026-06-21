@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super SOLAR - Bulk Match Importer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-8">
+            <h1 class="text-3xl font-black text-yellow-500">BULK MATCH IMPORTER</h1>
+            <p class="text-slate-400 text-sm">Update match metadata (Teams, Venues, Times) via JSON or CSV.</p>
+        </header>
+
+        <div class="grid grid-cols-1 gap-6">
+            <!-- FORMAT INSTRUCTIONS -->
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Expected Format (CSV or JSON)</h2>
+                <div class="grid grid-cols-2 gap-4 text-[10px] font-mono bg-black p-4 rounded-lg">
+                    <div>
+                        <p class="text-blue-400 font-bold mb-2">// CSV Header (Required)</p>
+                        <p>id,a,b,v,c,t,type</p>
+                        <p>1,Mexico,South Africa,Estadio Azteca,Mexico City,2026-06-11T15:00,Group</p>
+                    </div>
+                    <div>
+                        <p class="text-green-400 font-bold mb-2">// JSON Array</p>
+                        <p>[{"id":1, "a":"Mexico", "b":"USA" ...}]</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INPUT AREA -->
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                <label class="block text-sm font-bold mb-2">Paste Data Here</label>
+                <textarea id="import-data" class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs focus:border-yellow-500 outline-none" placeholder="Paste your JSON array or CSV text here..."></textarea>
+                
+                <div class="mt-4 flex gap-4">
+                    <button onclick="processData('json')" class="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded-xl font-bold transition-all">PROCESS AS JSON</button>
+                    <button onclick="processData('csv')" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold transition-all">PROCESS AS CSV</button>
+                </div>
+            </div>
+
+            <!-- LOGS -->
+            <div id="log-container" class="bg-black p-6 rounded-2xl border border-slate-800 hidden">
+                <h3 class="text-xs font-bold text-slate-500 uppercase mb-2">Progress Log</h3>
+                <div id="logs" class="text-[10px] font-mono space-y-1 max-h-40 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Use your existing config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmCTr3iMuL85IYam88BE3JIGJO4OVsscU",
+            authDomain: "worldcup2026-7bd64.firebaseapp.com",
+            databaseURL: "https://worldcup2026-7bd64-default-rtdb.firebaseio.com",
+            projectId: "worldcup2026-7bd64",
+            storageBucket: "worldcup2026-7bd64.firebasestorage.app",
+            messagingSenderId: "138339199903",
+            appId: "1:138339199903:web:db4d8b6295f65ae2062baa"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function addLog(msg, color = "text-slate-400") {
+            const container = document.getElementById('log-container');
+            const logBox = document.getElementById('logs');
+            container.classList.remove('hidden');
+            const div = document.createElement('div');
+            div.className = color;
+            div.innerText = `> ${msg}`;
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        async function processData(type) {
+            const raw = document.getElementById('import-data').value.trim();
+            if (!raw) return alert("Please paste data first");
+            
+            let dataArray = [];
+
+            try {
+                if (type === 'json') {
+                    dataArray = JSON.parse(raw);
+                } else {
+                    const lines = raw.split('\n');
+                    const headers = lines[0].split(',').map(h => h.trim());
+                    dataArray = lines.slice(1).map(line => {
+                        const values = line.split(',').map(v => v.trim());
+                        return headers.reduce((obj, header, index) => {
+                            obj[header] = values[index];
+                            return obj;
+                        }, {});
+                    });
+                }
+
+                if (!confirm(`Found ${dataArray.length} matches. Proceed with upload?`)) return;
+
+                for (const match of dataArray) {
+                    if (!match.id) {
+                        addLog("Skipping row: No ID found", "text-red-500");
+                        continue;
+                    }
+
+                    // Prepare update object (only include provided fields)
+                    const updates = {};
+                    if (match.a) updates.a = match.a;
+                    if (match.b) updates.b = match.b;
+                    if (match.v) updates.v = match.v;
+                    if (match.c) updates.c = match.c;
+                    if (match.t) updates.t = match.t;
+                    if (match.type) updates.type = match.type;
+
+                    await db.ref(`matches/${match.id}`).update(updates);
+                    addLog(`Updated Match #${match.id}: ${match.a || '?'} vs ${match.b || '?'}`, "text-green-500");
+                }
+
+                addLog("FINISHED ALL UPDATES", "font-black text-yellow-500");
+                alert("Bulk update complete!");
+
+            } catch (e) {
+                addLog("ERROR: " + e.message, "text-red-500");
+                console.error(e);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super SOLAR 2026 - Admin Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
+            <div>
+                <h1 class="text-3xl font-black text-yellow-500 tracking-tighter">ADMIN CONSOLE</h1>
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Match & Participant Management</p>
+            </div>
+            <a href="index.html" class="text-xs bg-slate-800 px-4 py-2 rounded-lg font-bold hover:bg-slate-700 transition-all">VIEW LIVE SITE</a>
+        </header>
+
+        <!-- ADMIN LOGIN -->
+        <div id="admin-login" class="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-xl">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4 text-center">Verify Admin Identity</h3>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="password" id="admin-code" placeholder="Enter Admin Secret" class="flex-1 p-4 rounded-xl bg-slate-950 border border-slate-800 outline-none focus:border-yellow-500 text-white">
+                <button onclick="handleAdminLogin()" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-xl font-black transition-all">VERIFY</button>
+            </div>
+        </div>
+
+        <!-- ADMIN CONTENT (HIDDEN BY DEFAULT) -->
+        <div id="admin-content" class="hidden space-y-6">
+            
+            <!-- USER MANAGEMENT -->
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                <h3 class="text-yellow-500 font-black text-xs uppercase tracking-widest mb-4">Add New Participant</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-6">
+                    <input type="text" id="new-first" placeholder="First Name" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm text-white">
+                    <input type="text" id="new-last" placeholder="Last Name" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm text-white">
+                    <input type="text" id="new-code" placeholder="Access Code" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm uppercase text-white">
+                    <button onclick="adminAddUser()" class="bg-yellow-500 text-black p-2 rounded font-bold text-xs uppercase">Add User</button>
+                </div>
+                <h3 class="text-slate-500 font-black text-[10px] uppercase mb-2">Existing Users</h3>
+                <div id="admin-user-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2"></div>
+            </div>
+
+            <!-- MATCH UPDATER -->
+            <div class="bg-blue-900/10 border border-blue-500/30 p-6 rounded-2xl">
+                <h3 class="text-blue-400 font-black text-xs uppercase tracking-widest mb-4">Update Match Details (TBD Teams)</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    <input type="number" id="adm-match-id" placeholder="Match #" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm text-white">
+                    <input type="text" id="adm-team-a" placeholder="Team A" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm text-white">
+                    <input type="text" id="adm-team-b" placeholder="Team B" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm text-white">
+                    <input type="text" id="adm-venue" placeholder="Venue" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm text-white">
+                    <button onclick="adminUpdateMatchData()" class="bg-blue-600 rounded font-bold text-xs uppercase">Save Match</button>
+                </div>
+            </div>
+
+            <!-- RESULT SETTER -->
+            <div class="bg-red-950/20 border border-red-900/40 p-6 rounded-2xl">
+                <h3 class="text-red-500 font-black text-xs uppercase tracking-widest mb-4">Record Official Result</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <input type="number" id="res-match-id" placeholder="Match #" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm text-white">
+                    <select id="res-winner" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm text-white">
+                        <option value="">Winner?</option>
+                        <option value="A">Team A</option>
+                        <option value="B">Team B</option>
+                        <option value="Tie">Draw (Group Stage Only)</option>
+                    </select>
+                    <button onclick="adminSetResult()" class="bg-red-600 hover:bg-red-500 rounded-lg font-bold text-xs uppercase">Submit Result</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmCTr3iMuL85IYam88BE3JIGJO4OVsscU",
+            authDomain: "worldcup2026-7bd64.firebaseapp.com",
+            databaseURL: "https://worldcup2026-7bd64-default-rtdb.firebaseio.com",
+            projectId: "worldcup2026-7bd64",
+            storageBucket: "worldcup2026-7bd64.firebasestorage.app",
+            messagingSenderId: "138339199903",
+            appId: "1:138339199903:web:db4d8b6295f65ae2062baa"
+        };
+
+        const ADMIN_HASH = "d43d008e1e431c20bf6acaa2ba6aa575e83da51eb43b1cd0eea2387e04ead39a";
+
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);                    
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let state = { matches: [], userData: {} };
+
+        db.ref('/').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            state.matches = data.matches || [];
+            state.userData = data.users || {};
+            renderAdminUsers();
+        });
+
+        async function handleAdminLogin() {
+            const inputCode = document.getElementById('admin-code').value.trim().toUpperCase();
+            const hashedInput = await sha256(inputCode);
+            if (hashedInput === ADMIN_HASH) {
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+            } else {
+                alert("Incorrect Admin Code");
+            }
+        }
+
+        async function adminAddUser() {
+            const first = document.getElementById('new-first').value;
+            const last = document.getElementById('new-last').value;
+            const code = document.getElementById('new-code').value.toUpperCase();
+            if(!first || !code) return alert("First Name and Code required");
+            await db.ref('users').push({ firstName: first, lastName: last, code: code, picks: {} });
+            document.getElementById('new-first').value = '';
+            document.getElementById('new-last').value = '';
+            document.getElementById('new-code').value = '';
+        }
+
+        async function adminDeleteUser(id) {
+            if(confirm("Permanently remove this participant?")) await db.ref(`users/${id}`).remove();
+        }
+
+        function renderAdminUsers() {
+            const list = document.getElementById('admin-user-list');
+            list.innerHTML = Object.entries(state.userData).map(([id, u]) => `
+                <div class="flex justify-between items-center p-3 bg-slate-950 rounded border border-slate-800 text-xs">
+                    <span>${u.firstName} ${u.lastName} <span class="text-slate-500 ml-2">(${u.code})</span></span>
+                    <button onclick="adminDeleteUser('${id}')" class="text-red-500 hover:text-red-400 px-2 font-bold">✕</button>
+                </div>
+            `).join('');
+        }
+
+        async function adminUpdateMatchData() {
+            const id = document.getElementById('adm-match-id').value;
+            const a = document.getElementById('adm-team-a').value;
+            const b = document.getElementById('adm-team-b').value;
+            const v = document.getElementById('adm-venue').value;
+            if(!id) return alert("Enter Match #");
+            const update = {};
+            if(a) update.a = a;
+            if(b) update.b = b;
+            if(v) update.v = v;
+            await db.ref(`matches/${id}`).update(update);
+            alert("Match updated successfully.");
+        }
+
+        async function adminSetResult() {
+            const id = document.getElementById('res-match-id').value;
+            const res = document.getElementById('res-winner').value;
+            if(id && res) {
+                await db.ref(`matches/${id}/res`).set(res);
+                alert("Result recorded.");
+            } else {
+                alert("Please select match and result");
+            }
+        }
+    </script>
+</body>
+</html>
