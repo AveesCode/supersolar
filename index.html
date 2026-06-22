@@ -12,6 +12,7 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .tab-active { border-bottom: 2px solid #eab308; color: #eab308; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
@@ -31,7 +32,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- STANDINGS -->
+            <!-- LEFT COLUMN: STANDINGS -->
             <div class="lg:col-span-4">
                 <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-2xl sticky top-8">
                     <h2 class="text-xl font-black mb-6 flex items-center gap-2">
@@ -41,77 +42,86 @@
                 </div>
             </div>
 
-            <!-- MAIN CONTENT -->
+            <!-- RIGHT COLUMN: MAIN CONTENT -->
             <div class="lg:col-span-8 space-y-6">
                 
+                <!-- LOGIN SCREEN -->
                 <div id="login-screen" class="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-xl">
                     <h3 class="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4 text-center">Participant Access</h3>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <input type="password" id="login-code" placeholder="Enter Login Code" class="flex-1 p-4 rounded-xl bg-slate-950 border border-slate-800 outline-none focus:border-yellow-500 transition-all">
+                        <input type="password" id="login-code" placeholder="Enter Login Code" class="flex-1 p-4 rounded-xl bg-slate-950 border border-slate-800 outline-none focus:border-yellow-500 transition-all text-center tracking-widest font-bold">
                         <button onclick="handleLogin()" class="bg-yellow-500 hover:bg-yellow-400 text-black px-10 py-4 rounded-xl font-black transition-all shadow-lg">ENTER</button>
                     </div>
                 </div>
 
+                <!-- PUBLIC PREDICTION DASHBOARD -->
+                <div id="public-dashboard" class="hidden space-y-4 mb-8">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                        </span>
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Upcoming Match Hype</h3>
+                    </div>
+                    <div id="hype-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Hype cards injected here -->
+                    </div>
+                </div>
+
+                <!-- MAIN APP CONTENT -->
                 <div id="app-content" class="hidden space-y-6">
-                    <div class="flex justify-between items-center bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                        <div>
-                            <h2 id="user-welcome" class="text-2xl font-black text-yellow-500"></h2>
-                            <p id="user-role-tag" class="text-[10px] uppercase font-bold text-slate-500 tracking-widest"></p>
-                        </div>
-                        <button onclick="logout()" class="px-4 py-2 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-400 text-[10px] font-bold rounded-lg transition-all uppercase">Logout</button>
-                    </div>
-
-                    <!-- ADMIN PANEL -->
-                    <div id="admin-panel" class="hidden space-y-4">
-                        <!-- USER MANAGEMENT -->
-                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                            <h3 class="text-yellow-500 font-black text-xs uppercase tracking-widest mb-4">Participant Management</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-4">
-                                <input type="text" id="new-first" placeholder="First" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                                <input type="text" id="new-last" placeholder="Last" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                                <input type="text" id="new-code" placeholder="Code" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm uppercase">
-                                <button onclick="adminAddUser()" class="bg-blue-600 p-2 rounded font-bold text-xs">ADD</button>
+                    
+                    <!-- USER HEADER & STATS -->
+                    <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 id="user-welcome" class="text-2xl font-black text-yellow-500"></h2>
+                                <p id="user-role-tag" class="text-[10px] uppercase font-bold text-slate-500 tracking-widest"></p>
                             </div>
-                            <div id="admin-user-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-40 overflow-y-auto"></div>
+                            <button onclick="logout()" class="px-4 py-2 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-400 text-[10px] font-bold rounded-lg transition-all uppercase">Logout</button>
                         </div>
-
-                    <!-- MATCH DETAILS UPDATER -->
-                    <div class="bg-blue-900/10 border border-blue-500/30 p-6 rounded-2xl">
-                        <h3 class="text-blue-400 font-black text-xs uppercase tracking-widest mb-4">Update Match Info</h3>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
-                            <input type="number" id="adm-match-id" placeholder="Match #" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                            <input type="text" id="adm-team-a" placeholder="Team A" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                            <input type="text" id="adm-team-b" placeholder="Team B" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                            <input type="text" id="adm-venue" placeholder="Venue" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <input type="text" id="adm-city" placeholder="City" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                            <input type="datetime-local" id="adm-time" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm text-slate-400">
-                            <select id="adm-type" class="bg-slate-950 p-2 rounded border border-slate-800 text-sm">
-                                <option value="">Type?</option>
-                                <option value="Group">Group</option>
-                                <option value="Playoff">Playoff</option>
-                            </select>
-                            <button onclick="adminUpdateMatchData()" class="bg-blue-600 rounded font-bold text-xs uppercase">Save All Info</button>
-                        </div>
-                    </div>
-
-                        <!-- RESULT SETTER -->
-                        <div class="bg-red-950/20 border border-red-900/40 p-6 rounded-2xl">
-                            <h3 class="text-red-500 font-black text-xs uppercase tracking-widest mb-4">Set Official Results</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <input type="number" id="res-match-id" placeholder="Match #" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
-                                <select id="res-winner" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
-                                    <option value="">Winner?</option>
-                                    <option value="A">Team A</option>
-                                    <option value="B">Team B</option>
-                                    <option value="Tie">Draw</option>
-                                </select>
-                                <button onclick="adminSetResult()" class="bg-red-600 hover:bg-red-500 rounded-lg font-bold text-xs uppercase">Submit Result</button>
+                        
+                        <!-- STATS STRIP -->
+                        <div class="grid grid-cols-3 gap-2 pt-4 border-t border-slate-800/50 text-center">
+                            <div>
+                                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Total Predicted</p>
+                                <p id="stat-picks" class="text-lg font-black text-white">0</p>
+                            </div>
+                            <div>
+                                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Correct</p>
+                                <p id="stat-correct" class="text-lg font-black text-green-500">0</p>
+                            </div>
+                            <div>
+                                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Accuracy</p>
+                                <p id="stat-accuracy" class="text-lg font-black text-blue-400">0%</p>
                             </div>
                         </div>
                     </div>
 
+                    <!-- NEXT MATCH COUNTDOWN -->
+                    <div id="countdown-bar" class="bg-gradient-to-r from-blue-900/20 to-slate-900 border border-blue-500/20 p-4 rounded-2xl flex justify-between items-center hidden">
+                        <div class="flex items-center gap-3">
+                            <span class="animate-pulse w-2 h-2 rounded-full bg-blue-500"></span>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-blue-400">Next Kickoff:</span>
+                            <span id="next-match-name" class="text-[10px] font-bold text-slate-300 uppercase"></span>
+                        </div>
+                        <div id="countdown-timer" class="text-sm font-black text-white font-mono">--:--:--</div>
+                    </div>
+
+                    <!-- SEARCH & FILTERS -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                        <div class="p-2 border-b border-slate-800">
+                            <input type="text" id="match-search" oninput="renderApp()" placeholder="Search teams..." class="w-full bg-slate-950 p-3 rounded-xl text-sm border-none outline-none focus:ring-1 ring-yellow-500/50 transition-all">
+                        </div>
+                        <div class="flex overflow-x-auto">
+                            <button onclick="setFilter('all')" id="tab-all" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 border-transparent">All</button>
+                            <button onclick="setFilter('picks')" id="tab-picks" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 border-transparent">My Picks</button>
+                            <button onclick="setFilter('upcoming')" id="tab-upcoming" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 border-transparent">Upcoming</button>
+                            <button onclick="setFilter('results')" id="tab-results" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 border-transparent">Results</button>
+                        </div>
+                    </div>
+
+                    <!-- MATCH GRID -->
                     <div id="match-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
             </div>
@@ -119,121 +129,55 @@
     </div>
 
     <script>
-        // --- FIREBASE CONFIG ---
-const firebaseConfig = {
-  apiKey: "AIzaSyCmCTr3iMuL85IYam88BE3JIGJO4OVsscU",
-  authDomain: "worldcup2026-7bd64.firebaseapp.com",
-  databaseURL: "https://worldcup2026-7bd64-default-rtdb.firebaseio.com",
-  projectId: "worldcup2026-7bd64",
-  storageBucket: "worldcup2026-7bd64.firebasestorage.app",
-  messagingSenderId: "138339199903",
-  appId: "1:138339199903:web:db4d8b6295f65ae2062baa"
-};
-
-
-        // 1. Replace this with the your chosen password
-        const ADMIN_HASH = "d43d008e1e431c20bf6acaa2ba6aa575e83da51eb43b1cd0eea2387e04ead39a";
-
-        // 2. Helper function to hash a string
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);                    
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmCTr3iMuL85IYam88BE3JIGJO4OVsscU",
+            authDomain: "worldcup2026-7bd64.firebaseapp.com",
+            databaseURL: "https://worldcup2026-7bd64-default-rtdb.firebaseio.com",
+            projectId: "worldcup2026-7bd64",
+            storageBucket: "worldcup2026-7bd64.firebasestorage.app",
+            messagingSenderId: "138339199903",
+            appId: "1:138339199903:web:db4d8b6295f65ae2062baa"
+        };
+       
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let state = { matches: [], userData: {}, currentUser: null };
+        let state = { 
+            matches: [], 
+            userData: {}, 
+            currentUser: null, 
+            filter: 'all',
+            nextMatchInterval: null 
+        };
 
-        // INITIALIZE APP & SCHEDULE
         async function init() {
             db.ref('/').on('value', async (snapshot) => {
                 const data = snapshot.val() || {};
-                
-                if (!data.matches) {
-                    const fullSchedule = generateFullSchedule();
-                    await db.ref('matches').set(fullSchedule);
-                    state.matches = fullSchedule;
-                } else {
-                    state.matches = data.matches;
-                }
-
+                state.matches = data.matches || [];
                 state.userData = data.users || {};
+                
                 renderStandings();
-                if (state.currentUser) renderApp();
+                renderPublicDashboard();
+                if (state.currentUser) {
+                    // Update current user local state from DB
+                    state.currentUser = { ...state.userData[state.currentUser.id], id: state.currentUser.id };
+                    renderApp();
+                }
                 document.getElementById('loader').classList.add('hidden');
             });
+            
+            // Start Countdown Refresh
+            setInterval(updateCountdown, 1000);
         }
 
-        function generateFullSchedule() {
-            const m = [];
-            // Group Stage (known matches)
-            const base = [
-                { id: 1, a: "Mexico", b: "South Africa", v: "Estadio Azteca", c: "Mexico City", t: "2026-06-11T15:00", type: "Group" },
-                { id: 2, a: "South Korea", b: "Czechia", v: "Estadio Akron", c: "Guadalajara", t: "2026-06-11T22:00", type: "Group" },
-                { id: 3, a: "Canada", b: "Bosnia & Herz.", v: "BMO Field", c: "Toronto", t: "2026-06-12T15:00", type: "Group" },
-                { id: 4, a: "USA", b: "Paraguay", v: "SoFi Stadium", c: "Los Angeles", t: "2026-06-12T21:00", type: "Group" },
-                { id: 5, a: "Qatar", b: "Switzerland", v: "Levi's Stadium", c: "San Francisco", t: "2026-06-13T15:00", type: "Group" },
-                { id: 6, a: "Brazil", b: "Morocco", v: "MetLife Stadium", c: "NY/NJ", t: "2026-06-13T18:00", type: "Group" },
-                { id: 7, a: "Haiti", b: "Scotland", v: "Gillette Stadium", c: "Boston", t: "2026-06-13T21:00", type: "Group" },
-                { id: 8, a: "Australia", b: "Türkiye", v: "BC Place", c: "Vancouver", t: "2026-06-14T00:00", type: "Group" },
-                { id: 9, a: "Germany", b: "Curaçao", v: "NRG Stadium", c: "Houston", t: "2026-06-14T13:00", type: "Group" },
-                { id: 10, a: "Netherlands", b: "Japan", v: "AT&T Stadium", c: "Dallas", t: "2026-06-14T16:00", type: "Group" },
-                { id: 11, a: "Ivory Coast", b: "Ecuador", v: "Lincoln Financial", c: "Philadelphia", t: "2026-06-14T19:00", type: "Group" },
-                { id: 12, a: "Sweden", b: "Tunisia", v: "Estadio BBVA", c: "Monterrey", t: "2026-06-14T22:00", type: "Group" },
-                { id: 13, a: "Spain", b: "Cape Verde", v: "Mercedes-Benz", c: "Atlanta", t: "2026-06-15T12:00", type: "Group" },
-                { id: 14, a: "Belgium", b: "Egypt", v: "Lumen Field", c: "Seattle", t: "2026-06-15T15:00", type: "Group" },
-                { id: 15, a: "Saudi Arabia", b: "Uruguay", v: "Hard Rock", c: "Miami", t: "2026-06-15T18:00", type: "Group" },
-                { id: 16, a: "Iran", b: "New Zealand", v: "SoFi Stadium", c: "Los Angeles", t: "2026-06-15T21:00", type: "Group" },
-                { id: 17, a: "France", b: "Senegal", v: "MetLife Stadium", c: "NY/NJ", t: "2026-06-16T15:00", type: "Group" },
-                { id: 18, a: "Iraq", b: "Norway", v: "Gillette Stadium", c: "Boston", t: "2026-06-16T18:00", type: "Group" },
-                { id: 19, a: "Argentina", b: "Algeria", v: "Arrowhead", c: "Kansas City", t: "2026-06-16T21:00", type: "Group" },
-                { id: 20, a: "Austria", b: "Jordan", v: "Levi's Stadium", c: "San Francisco", t: "2026-06-17T00:00", type: "Group" },
-                { id: 21, a: "Portugal", b: "Congo DR", v: "NRG Stadium", c: "Houston", t: "2026-06-17T13:00", type: "Group" },
-                { id: 22, a: "England", b: "Croatia", v: "AT&T Stadium", c: "Dallas", t: "2026-06-17T16:00", type: "Group" },
-                { id: 23, a: "Ghana", b: "Panama", v: "BMO Field", c: "Toronto", t: "2026-06-17T19:00", type: "Group" },
-                { id: 24, a: "Mexico", b: "A3", v: "Estadio BBVA", c: "Monterrey", t: "2026-06-18T22:00", type: "Group" }
-            ];
-
-            for(let i=0; i<=104; i++) {
-                if (i===0) { m[0] = null; continue; }
-                const found = base.find(x => x.id === i);
-                if (found) { m[i] = found; }
-                else {
-                    m[i] = { 
-                        id: i, a: "TBD", b: "TBD", 
-                        v: i > 72 ? "Knockout Venue" : "Group Venue", 
-                        c: "TBD City", 
-                        t: i > 72 ? "2026-06-28T12:00" : "2026-06-20T12:00", 
-                        type: i > 72 ? "Playoff" : "Group" 
-                    };
-                }
-            }
-            return m;
-        }
-
-        // CORE APP LOGIC
-        // 3. Updated Login Function
         async function handleLogin() {
             const inputCode = document.getElementById('login-code').value.trim();
-            const hashedInput = await sha256(inputCode.toUpperCase());
-        
-            // Check if hashed input matches the Admin Hash
-            if (hashedInput === ADMIN_HASH) {
-                state.currentUser = { firstName: "System", lastName: "Admin", role: 'admin', code: inputCode };
+            const userEntry = Object.entries(state.userData).find(([id, u]) => u.code === inputCode.toUpperCase());
+            if (userEntry) {
+                state.currentUser = { ...userEntry[1], id: userEntry[0], role: 'user' };
                 showApp();
             } else {
-                // Check regular participants
-                const userEntry = Object.entries(state.userData).find(([id, u]) => u.code === inputCode.toUpperCase());
-                if (userEntry) {
-                    state.currentUser = { ...userEntry[1], id: userEntry[0], role: 'user' };
-                    showApp();
-                } else {
-                    alert("Unauthorized Login Code");
-                }
+                alert("Unauthorized Login Code");
             }
         }
         
@@ -243,157 +187,266 @@ const firebaseConfig = {
             renderApp();
         }
 
+        function setFilter(f) {
+            state.filter = f;
+            renderApp();
+        }
+
+        function updateCountdown() {
+            if (!state.matches.length) return;
+            const now = new Date();
+            const nextMatch = state.matches.slice(1).find(m => m && new Date(m.t) > now);
+            
+            const bar = document.getElementById('countdown-bar');
+            if (!nextMatch || !state.currentUser) {
+                bar.classList.add('hidden');
+                return;
+            }
+
+            bar.classList.remove('hidden');
+            document.getElementById('next-match-name').innerText = `${nextMatch.a} vs ${nextMatch.b}`;
+            
+            const diff = new Date(nextMatch.t) - now;
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            
+            document.getElementById('countdown-timer').innerText = 
+                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
         function renderApp() {
             const user = state.currentUser;
-            document.getElementById('user-welcome').innerText = `${user.firstName} ${user.lastName}`;
-            document.getElementById('user-role-tag').innerText = user.role === 'admin' ? 'Administrator' : 'Participant';
-            if (user.role === 'admin') {
-                document.getElementById('admin-panel').classList.remove('hidden');
-                renderAdminUsers();
-            }
-            const container = document.getElementById('match-list');
+            const picks = user.picks || {};
+            const search = document.getElementById('match-search').value.toLowerCase();
             const now = new Date();
-            const picks = (user.role === 'admin') ? {} : (state.userData[user.id]?.picks || {});
 
-            container.innerHTML = state.matches.slice(1).map(m => {
-                if (!m) return '';
+            document.getElementById('user-welcome').innerText = `${user.firstName} ${user.lastName}`;
+            
+            
+            // --- STATS CALCULATION ---
+            const settledMatches = state.matches.filter(m => m && m.res);
+            let correct = 0;
+            let attempted = 0;
+            let missed = 0;
+            settledMatches.forEach(m => {
+                if (picks[m.id]) {
+                    attempted++;
+                    if (picks[m.id] === m.res) correct++;
+                } else {
+                    missed++;
+                }
+            });
+            const accuracy = attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
+            
+            document.getElementById('stat-picks').innerText = `${attempted}/${settledMatches.length}`;
+            document.getElementById('stat-correct').innerText = correct;
+            document.getElementById('stat-accuracy').innerHTML = `<span class="text-blue-400">${accuracy}%</span> <span class="text-[10px] text-red-500 ml-1">(${missed} Miss)</span>`;
+
+            // --- NAVIGATION TAB UI REFRESH ---
+            ['all', 'picks', 'upcoming', 'results'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (state.filter === t) {
+                    // Active Tab Style
+                    btn.className = "flex-1 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all border-b-4 border-yellow-500 text-yellow-500 bg-yellow-500/5";
+                } else {
+                    // Inactive Tab Style
+                    btn.className = "flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.1em] transition-all border-b-4 border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800/50";
+                }
+            });
+
+            // --- FILTERING & RENDERING ---
+            let filtered = state.matches.slice(1).filter(m => m !== null);
+            if (search) filtered = filtered.filter(m => m.a.toLowerCase().includes(search) || m.b.toLowerCase().includes(search));
+            if (state.filter === 'picks') filtered = filtered.filter(m => picks[m.id]);
+            if (state.filter === 'upcoming') filtered = filtered.filter(m => new Date(m.t) > now);
+            if (state.filter === 'results') filtered = filtered.filter(m => m.res);
+
+            const container = document.getElementById('match-list');
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full p-20 text-center text-slate-600 italic text-sm">No matches match your filter...</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(m => {
                 const kickoff = new Date(m.t);
                 const isLocked = now > kickoff;
                 const userPick = picks[m.id];
+                const kickoffStr = kickoff.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+
                 return `
-                    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 ${isLocked ? 'locked' : ''}">
-                        <div class="flex justify-between text-[10px] font-bold text-slate-500 uppercase mb-4">
-                            <span>Match #${m.id}</span>
-                            <span class="text-yellow-600">${kickoff.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})} ET</span>
+                    <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg ${isLocked ? 'locked' : ''}">
+                        <div class="p-4 bg-slate-950/50 border-b border-slate-800 flex justify-between items-center">
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Match #${m.id}</span>
+                            <span class="text-[9px] font-bold text-yellow-600 uppercase tracking-tighter">${kickoffStr} ET</span>
                         </div>
-                        <div class="text-[9px] text-slate-600 uppercase mb-4 tracking-tighter">${m.v} • ${m.c}</div>
-                        <div class="flex flex-col gap-2">
-                            <button onclick="savePick(${m.id}, 'A')" class="flex justify-between p-3 rounded-xl border text-sm font-bold transition-all ${userPick === 'A' ? 'bg-yellow-500 border-yellow-400 text-black' : 'bg-slate-950 border-slate-800 hover:border-slate-600'}">
-                                ${m.a} <span>${m.res === 'A' ? '⭐' : ''}</span>
-                            </button>
-                            ${m.type === 'Group' ? `<button onclick="savePick(${m.id}, 'Tie')" class="p-1 rounded-lg border text-[10px] font-bold ${userPick === 'Tie' ? 'bg-slate-700 border-slate-500' : 'bg-slate-950 border-slate-900'}">DRAW</button>` : ''}
-                            <button onclick="savePick(${m.id}, 'B')" class="flex justify-between p-3 rounded-xl border text-sm font-bold transition-all ${userPick === 'B' ? 'bg-yellow-500 border-yellow-400 text-black' : 'bg-slate-950 border-slate-800 hover:border-slate-600'}">
-                                ${m.b} <span>${m.res === 'B' ? '⭐' : ''}</span>
-                            </button>
+                        <div class="p-5 space-y-4">
+                            <div class="flex flex-col gap-2">
+                                <button onclick="savePick(${m.id}, 'A')" class="flex justify-between items-center p-4 rounded-xl border text-sm font-black transition-all ${userPick === 'A' ? 'bg-yellow-500 border-yellow-400 text-black shadow-lg scale-[1.02]' : 'bg-slate-950 border-slate-800 hover:border-slate-600'}">
+                                    <span>${m.a}</span>
+                                    ${m.res === 'A' ? '<span class="text-lg">⭐</span>' : (userPick === 'A' ? '<span>✓</span>' : '')}
+                                </button>
+                                ${m.type === 'Group' ? `
+                                    <button onclick="savePick(${m.id}, 'Tie')" class="py-1 rounded-lg border text-[9px] font-black tracking-widest transition-all ${userPick === 'Tie' ? 'bg-slate-700 border-slate-500 text-white' : 'bg-slate-950 border-slate-900 text-slate-600'}">
+                                        DRAW ${m.res === 'Tie' ? '⭐' : ''}
+                                    </button>
+                                ` : ''}
+                                <button onclick="savePick(${m.id}, 'B')" class="flex justify-between items-center p-4 rounded-xl border text-sm font-black transition-all ${userPick === 'B' ? 'bg-yellow-500 border-yellow-400 text-black shadow-lg scale-[1.02]' : 'bg-slate-950 border-slate-800 hover:border-slate-600'}">
+                                    <span>${m.b}</span>
+                                    ${m.res === 'B' ? '<span class="text-lg">⭐</span>' : (userPick === 'B' ? '<span>✓</span>' : '')}
+                                </button>
+                            </div>
+                            <div class="pt-2 border-t border-slate-800/50">
+                                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest truncate">${m.v}</p>
+                                <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">${m.c}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            renderPublicDashboard();
+        }
+
+        async function savePick(matchId, pick) {
+            await db.ref(`users/${state.currentUser.id}/picks/${matchId}`).set(pick);
+        }
+
+        function renderStandings() {
+            const container = document.getElementById('leaderboard-container');
+            
+            const rankings = Object.entries(state.userData).map(([id, user]) => {
+                let correct = 0, attempted = 0, missed = 0, incorrect = 0;
+                const picks = user.picks || {};
+                
+                // Only evaluate matches that the admin has settled
+                const settledMatches = state.matches.filter(m => m && m.res);
+                const totalSettled = settledMatches.length;
+
+                settledMatches.forEach(m => {
+                    if (picks[m.id]) {
+                        attempted++;
+                        if (picks[m.id] === m.res) correct++;
+                        else incorrect++; // Match exists, pick exists, but they don't match
+                    } else {
+                        missed++; // Match exists, but no pick was found
+                    }
+                });
+
+                const accuracy = attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
+
+                return { 
+                    name: `${user.firstName} ${user.lastName}`, 
+                    score: correct, 
+                    attempted, totalSettled, missed, incorrect, accuracy,
+                    prevRank: user.prevRank || 0 
+                };
+            }).sort((a, b) => b.score - a.score || b.accuracy - a.accuracy);
+
+            container.innerHTML = rankings.map((p, i) => {
+                const currentRank = i + 1;
+                
+                // Podium Styling
+                let medal = "";
+                let rankBorder = "border-slate-800";
+                if (currentRank === 1) { medal = "🥇"; rankBorder = "border-yellow-500/50"; }
+                else if (currentRank === 2) { medal = "🥈"; rankBorder = "border-slate-400/50"; }
+                else if (currentRank === 3) { medal = "🥉"; rankBorder = "border-orange-500/50"; }
+
+                let move = '<span class="text-slate-800">-</span>';
+                if (p.prevRank !== 0) {
+                    if (currentRank < p.prevRank) move = '<span class="text-green-500 text-[10px]">▲</span>';
+                    else if (currentRank > p.prevRank) move = '<span class="text-red-500 text-[10px]">▼</span>';
+                }
+
+                return `
+                    <div class="flex flex-col p-3 rounded-2xl bg-slate-900/40 border ${rankBorder} mb-2">
+                        <!-- TOP LINE: Rank, Name, Score -->
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-3">
+                                <span class="w-3 text-center">${move}</span>
+                                <span class="text-[12px] font-black text-slate-500 w-4">${medal || currentRank + '.'}</span>
+                                <span class="text-sm font-bold text-slate-100">${p.name}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm font-black text-yellow-500">${p.score} <span class="text-[8px] text-slate-500 tracking-widest uppercase">PTS</span></span>
+                            </div>
+                        </div>
+                        
+                        <!-- BOTTOM LINE: Simplified Stats Table -->
+                        <div class="grid grid-cols-3 gap-1 bg-slate-950/80 rounded-xl p-2 ml-6 border border-slate-800/50 text-center">
+                            <div class="border-r border-slate-800">
+                                <p class="text-[11px] text-slate-500 uppercase font-black tracking-tighter">Predicted</p>
+                                <p class="text-[12px] font-mono font-bold text-slate-300">${p.attempted}/${p.totalSettled}</p>
+                            </div>
+                            <div class="border-r border-slate-800">
+                                <p class="text-[11px] text-slate-500 uppercase font-black tracking-tighter">Incorrect</p>
+                                <p class="text-[12px] font-mono font-bold text-orange-600">${p.incorrect}</p>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-slate-500 uppercase font-black tracking-tighter">Missed</p>
+                                <p class="text-[12px] font-mono font-bold text-red-600">${p.missed}</p>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        async function savePick(matchId, pick) {
-            if (state.currentUser.role === 'admin') return;
-            await db.ref(`users/${state.currentUser.id}/picks/${matchId}`).set(pick);
-        }
-
-        // ADMIN FUNCTIONS
-        async function adminUpdateMatchData() {
-            const id = document.getElementById('adm-match-id').value;
-            const a = document.getElementById('adm-team-a').value;
-            const b = document.getElementById('adm-team-b').value;
-            const v = document.getElementById('adm-venue').value;
-            const c = document.getElementById('adm-city').value;
-            const t = document.getElementById('adm-time').value;
-            const type = document.getElementById('adm-type').value;
-
-            if(!id) return alert("Enter Match #");
+        function renderPublicDashboard() {
+            const container = document.getElementById('public-dashboard');
+            const grid = document.getElementById('hype-grid');
+            const now = new Date();
             
-            const update = {};
-            if(a) update.a = a;
-            if(b) update.b = b;
-            if(v) update.v = v;
-            if(c) update.c = c;
-            if(t) update.t = t;
-            if(type) update.type = type;
+            // 1. Get total participants
+            const totalUsers = Object.keys(state.userData).length;
+            if (totalUsers === 0) return;
 
-            await db.ref(`matches/${id}`).update(update);
-            alert("Match #" + id + " Updated successfully");
-        }
+            // 2. Find next 3 matches
+            const upcoming = state.matches
+                .slice(1)
+                .filter(m => m && new Date(m.t) > now)
+                .sort((a, b) => new Date(a.t) - new Date(b.t))
+                .slice(0, 3);
 
-        async function adminAddUser() {
-            const first = document.getElementById('new-first').value;
-            const last = document.getElementById('new-last').value;
-            const code = document.getElementById('new-code').value.toUpperCase();
-            if(!first || !code) return;
-            await db.ref('users').push({ firstName: first, lastName: last, code: code, picks: {} });
-        }
+            if (upcoming.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
 
-        async function adminDeleteUser(id) {
-            if(confirm("Delete user?")) await db.ref(`users/${id}`).remove();
-        }
+            container.classList.remove('hidden');
 
-        function renderAdminUsers() {
-            const list = document.getElementById('admin-user-list');
-            list.innerHTML = Object.entries(state.userData).map(([id, u]) => `
-                <div class="flex justify-between items-center p-2 bg-slate-950 rounded border border-slate-800 text-[10px]">
-                    <span>${u.firstName} (${u.code})</span>
-                    <button onclick="adminDeleteUser('${id}')" class="text-red-500 px-1">✕</button>
-                </div>
-            `).join('');
-        }
-
-        // Set Result + Snapshot Ranks for Movement Indicator
-        async function adminSetResult() {
-            const id = document.getElementById('res-match-id').value;
-            const res = document.getElementById('res-winner').value;
-            if(!id || !res) return alert("Select Match and Winner");
-
-            // Before updating the score, save current ranks as "previous"
-            const currentRankings = Object.entries(state.userData).map(([uid, user]) => {
-                let score = 0;
-                const picks = user.picks || {};
-                state.matches.forEach(m => { if (m && m.res && picks[m.id] === m.res) score++; });
-                return { uid, score };
-            }).sort((a, b) => b.score - a.score);
-
-            // Save previous rank (index + 1) to each user in DB
-            const rankUpdates = {};
-            currentRankings.forEach((item, index) => {
-                rankUpdates[`users/${item.uid}/prevRank`] = index + 1;
-            });
-
-            await db.ref().update(rankUpdates);
-            // Now set the actual result
-            await db.ref(`matches/${id}/res`).set(res);
-            alert("Result set and rankings updated.");
-        }
-
-        // Render Standings with Movement Arrows
-        function renderStandings() {
-            const container = document.getElementById('leaderboard-container');
-            
-            const rankings = Object.entries(state.userData).map(([id, user]) => {
-                let score = 0;
-                const picks = user.picks || {};
-                state.matches.forEach(m => { 
-                    if (m && m.res && picks[m.id] === m.res) score++; 
+            grid.innerHTML = upcoming.map(m => {
+                // 3. Count how many users have a pick for this specific match ID
+                let pickCount = 0;
+                Object.values(state.userData).forEach(user => {
+                    if (user.picks && user.picks[m.id]) pickCount++;
                 });
-                return { 
-                    name: `${user.firstName} ${user.lastName}`, 
-                    score, 
-                    prevRank: user.prevRank || 0 
-                };
-            }).sort((a, b) => b.score - a.score);
 
-            container.innerHTML = rankings.map((p, i) => {
-                const currentRank = i + 1;
-                let movementIcon = '<span class="text-slate-700">-</span>'; // No change
-
-                if (p.prevRank !== 0) {
-                    if (currentRank < p.prevRank) {
-                        movementIcon = '<span class="text-green-500 text-xs">▲</span>';
-                    } else if (currentRank > p.prevRank) {
-                        movementIcon = '<span class="text-red-500 text-xs">▼</span>';
-                    }
-                }
+                const percent = Math.round((pickCount / totalUsers) * 100);
+                const kickoff = new Date(m.t).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
                 return `
-                    <div class="flex justify-between items-center p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm">
-                        <div class="flex items-center gap-3">
-                            <span class="w-4 text-center">${movementIcon}</span>
-                            <span class="${i === 0 ? 'text-yellow-500 font-bold' : ''}">${currentRank}. ${p.name}</span>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-lg relative overflow-hidden">
+                        <!-- Background Glow -->
+                        <div class="absolute -right-4 -top-4 w-16 h-16 bg-yellow-500/5 blur-3xl rounded-full"></div>
+                        
+                        <div class="relative z-10">
+                            <p class="text-[8px] font-black text-yellow-600 uppercase mb-1">${kickoff}</p>
+                            <div class="text-[11px] font-bold text-slate-200 mb-3 truncate">
+                                ${m.a} <span class="text-slate-600 mx-1">vs</span> ${m.b}
+                            </div>
+                            
+                            <div class="flex justify-between items-end mb-1">
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-tighter">Participation</span>
+                                <span class="text-[10px] font-mono font-bold text-yellow-500">${pickCount}/${totalUsers}</span>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden border border-slate-800">
+                                <div class="bg-gradient-to-r from-yellow-600 to-yellow-400 h-full transition-all duration-1000" style="width: ${percent}%"></div>
+                            </div>
                         </div>
-                        <span class="font-black">${p.score} PTS</span>
                     </div>
                 `;
             }).join('');

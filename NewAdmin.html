@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - SUPER SOLAR 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-xl w-full max-w-md">
+            <h1 class="text-2xl font-black text-yellow-500 mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">ADMIN ACCESS</h1>
+            <input type="password" id="admin-pass" placeholder="Admin Key" class="w-full p-4 rounded-xl bg-slate-950 border border-slate-800 outline-none focus:border-yellow-500 mb-4 transition-all">
+            <button onclick="checkAdminAuth()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black py-4 rounded-xl font-black transition-all">UNLOCK TERMINAL</button>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- HEADER -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+            <div>
+                <h1 class="text-3xl font-black text-yellow-500">SYSTEM TERMINAL</h1>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.3em]">Super Solar 2026 Management</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="index.html" class="text-[10px] font-bold bg-slate-800 px-4 py-2 rounded-lg hover:bg-slate-700 transition-all uppercase tracking-widest">Public Site</a>
+                <button onclick="logout()" class="text-[10px] font-bold bg-red-900/20 text-red-500 border border-red-500/20 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest">Logout</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- LEFT COLUMN: CONTROLS (4 COLS) -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- USER MANAGEMENT -->
+                <section class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+                    <h3 class="text-yellow-500 font-black text-[10px] uppercase tracking-[0.2em] mb-6">Participant Management</h3>
+                    <div class="grid grid-cols-1 gap-3 mb-6">
+                        <div class="flex gap-2">
+                            <input type="text" id="new-first" placeholder="First Name" class="w-full bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                            <input type="text" id="new-last" placeholder="Last Name" class="w-full bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="new-code" placeholder="Login Code" class="w-full bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm uppercase">
+                            <button onclick="adminAddUser()" class="bg-blue-600 hover:bg-blue-500 px-6 rounded-lg font-bold text-xs uppercase transition-all">Add</button>
+                        </div>
+                    </div>
+                    <div id="admin-user-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                        <!-- Users injected here -->
+                    </div>
+                </section>
+
+                <!-- MATCH UPDATER -->
+                <section id="match-editor" class="bg-slate-900 border border-blue-500/20 p-6 rounded-2xl shadow-xl">
+                    <h3 class="text-blue-400 font-black text-[10px] uppercase tracking-[0.2em] mb-6 text-center">Update Match Details</h3>
+                    <div class="space-y-3">
+                        <input type="number" id="adm-match-id" placeholder="Match #" class="w-full bg-slate-950 p-3 rounded-lg border border-blue-500/30 text-yellow-500 font-bold text-sm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="adm-team-a" placeholder="Team A" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                            <input type="text" id="adm-team-b" placeholder="Team B" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="adm-venue" placeholder="Venue" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                            <input type="text" id="adm-city" placeholder="City" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                        </div>
+                        <input type="datetime-local" id="adm-time" class="w-full bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm text-slate-400">
+                        <select id="adm-type" class="w-full bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                            <option value="Group">Group Stage</option>
+                            <option value="Playoff">Playoff</option>
+                        </select>
+                        <button onclick="adminUpdateMatchData()" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold text-xs uppercase transition-all shadow-lg">Save Match Changes</button>
+                    </div>
+                </section>
+
+                <!-- RESULT SETTER -->
+                <section class="bg-slate-900 border border-red-900/30 p-6 rounded-2xl shadow-xl">
+                    <h3 class="text-red-500 font-black text-[10px] uppercase tracking-[0.2em] mb-6 text-center">Set Result</h3>
+                    <div class="flex flex-col gap-3">
+                        <input type="number" id="res-match-id" placeholder="Match #" class="bg-slate-950 p-3 rounded-lg border border-red-900/40 text-sm">
+                        <select id="res-winner" class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-sm">
+                            <option value="">Select Winner...</option>
+                            <option value="A">Team A</option>
+                            <option value="B">Team B</option>
+                            <option value="Tie">Draw</option>
+                        </select>
+                        <button onclick="adminSetResult()" class="bg-red-600 hover:bg-red-500 py-3 rounded-lg font-bold text-xs uppercase transition-all shadow-lg">Sync Result & Ranks</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RIGHT COLUMN: MATCH TABLE (7 COLS) -->
+            <div class="lg:col-span-7">
+                <section class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                    <div class="p-6 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/50">
+                        <div>
+                            <h3 class="text-slate-100 font-black text-[10px] uppercase tracking-[0.2em]">Tournament Schedule</h3>
+                            <span id="match-count" class="text-[9px] font-bold text-slate-500 uppercase"></span>
+                        </div>
+                        
+                        <div class="relative w-full sm:w-64">
+                            <input type="text" id="match-search" oninput="renderMatchTable()" 
+                                placeholder="Search ID, Team, City..." 
+                                class="w-full bg-slate-950 p-2.5 pl-4 rounded-xl border border-slate-800 text-xs outline-none focus:border-blue-500 transition-all text-slate-300">
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto flex-1 max-h-[800px]">
+                        <table class="w-full text-left text-[11px] border-collapse min-w-[700px]">
+                            <thead class="sticky top-0 bg-slate-950 text-slate-500 font-bold uppercase text-[9px] tracking-widest z-10">
+                                <tr>
+                                    <th class="p-4 border-b border-slate-800">ID</th>
+                                    <th class="p-4 border-b border-slate-800">Status</th>
+                                    <th class="p-4 border-b border-slate-800">Teams</th>
+                                    <th class="p-4 border-b border-slate-800 text-center">Res</th>
+                                    <th class="p-4 border-b border-slate-800">Kickoff (ET)</th>
+                                    <th class="p-4 border-b border-slate-800">Venue & City</th>
+                                    <th class="p-4 border-b border-slate-800 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="match-table-body" class="divide-y divide-slate-800/50">
+                                <!-- Match rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmCTr3iMuL85IYam88BE3JIGJO4OVsscU",
+            authDomain: "worldcup2026-7bd64.firebaseapp.com",
+            databaseURL: "https://worldcup2026-7bd64-default-rtdb.firebaseio.com",
+            projectId: "worldcup2026-7bd64",
+            storageBucket: "worldcup2026-7bd64.firebasestorage.app",
+            messagingSenderId: "138339199903",
+            appId: "1:138339199903:web:db4d8b6295f65ae2062baa"
+        };
+
+        const ADMIN_HASH = "d43d008e1e431c20bf6acaa2ba6aa575e83da51eb43b1cd0eea2387e04ead39a";
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let state = { users: {}, matches: [] };
+
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);                    
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function checkAdminAuth() {
+            const pass = document.getElementById('admin-pass').value;
+            const hashed = await sha256(pass);
+            if(hashed === ADMIN_HASH) {
+                document.getElementById('login-overlay').classList.add('hidden');
+                init();
+            } else {
+                alert("Access Denied");
+            }
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        function init() {
+            db.ref('/').on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                state.users = data.users || {};
+                state.matches = data.matches || [];
+                renderAdminUsers();
+                renderMatchTable();
+            });
+        }
+
+        function renderAdminUsers() {
+            const list = document.getElementById('admin-user-list');
+            list.innerHTML = Object.entries(state.users).map(([id, u]) => `
+                <div class="flex justify-between items-center p-3 bg-slate-950 rounded-xl border border-slate-800">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-slate-300">${u.firstName} ${u.lastName}</span>
+                        <span class="text-[9px] text-slate-600 font-mono tracking-widest uppercase">${u.code}</span>
+                    </div>
+                    <button onclick="adminDeleteUser('${id}')" class="text-slate-700 hover:text-red-500 transition-colors">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function renderMatchTable() {
+            const tbody = document.getElementById('match-table-body');
+            const countDisplay = document.getElementById('match-count');
+            const searchQuery = document.getElementById('match-search').value.toLowerCase();
+            
+            const validMatches = state.matches.filter(m => m !== null);
+
+            const filteredMatches = validMatches.filter(m => {
+                // Prepare date strings for searching
+                let dateSearchStr = "";
+                if (m.t) {
+                    const d = new Date(m.t);
+                    // This creates a string like "Jun 11, 03:00 PM" to make it searchable
+                    dateSearchStr = d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).toLowerCase();
+                }
+
+                const idMatch = m.id.toString().includes(searchQuery);
+                const teamAMatch = m.a.toLowerCase().includes(searchQuery);
+                const teamBMatch = m.b.toLowerCase().includes(searchQuery);
+                const cityMatch = (m.c || "").toLowerCase().includes(searchQuery);
+                const venueMatch = (m.v || "").toLowerCase().includes(searchQuery);
+                const timeMatch = dateSearchStr.includes(searchQuery); // NEW: Search by formatted date/time
+                
+                return idMatch || teamAMatch || teamBMatch || cityMatch || venueMatch || timeMatch;
+            });
+
+            countDisplay.innerText = `${filteredMatches.length} matches showing`;
+
+            if (filteredMatches.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-600 italic">No matches found matching "${searchQuery}"</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filteredMatches.map(m => {
+                const isSettled = m.res !== undefined && m.res !== "";
+                const badgeClass = isSettled ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-slate-800 text-slate-500 border-transparent";
+                const badgeText = isSettled ? "Settled" : "Open";
+                
+                let dateStr = "TBD";
+                if(m.t) {
+                    const d = new Date(m.t);
+                    dateStr = d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                }
+                
+                return `
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                        <td class="p-4 font-mono text-slate-500">#${m.id}</td>
+                        <td class="p-4">
+                            <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase border ${badgeClass}">${badgeText}</span>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex flex-col leading-tight">
+                                <span class="font-bold ${m.res === 'A' ? 'text-yellow-500' : 'text-slate-300'}">${m.a}</span>
+                                <span class="font-bold ${m.res === 'B' ? 'text-yellow-500' : 'text-slate-300'}">${m.b}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-center font-black text-yellow-500">${m.res || '-'}</td>
+                        <td class="p-4 text-slate-400 font-medium whitespace-nowrap">${dateStr}</td>
+                        <td class="p-4">
+                            <div class="flex flex-col leading-tight">
+                                <span class="text-slate-300 font-semibold">${m.v || 'TBD Venue'}</span>
+                                <span class="text-[9px] text-slate-500 uppercase tracking-tighter">${m.c || 'TBD City'}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-right">
+                            <button onclick="jumpToMatch(${m.id})" class="text-blue-500 hover:text-white font-bold text-[10px] uppercase transition-colors">Edit</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function jumpToMatch(id) {
+            document.getElementById('adm-match-id').value = id;
+            document.getElementById('res-match-id').value = id;
+            document.getElementById('match-editor').scrollIntoView({ behavior: 'smooth' });
+            // Add a little highlight effect
+            document.getElementById('adm-match-id').classList.add('border-yellow-500');
+            setTimeout(() => document.getElementById('adm-match-id').classList.remove('border-yellow-500'), 2000);
+        }
+
+        async function adminAddUser() {
+            const first = document.getElementById('new-first').value;
+            const last = document.getElementById('new-last').value;
+            const code = document.getElementById('new-code').value.toUpperCase();
+            if(!first || !code) return alert("Missing Info");
+            await db.ref('users').push({ firstName: first, lastName: last, code: code, picks: {}, prevRank: 0 });
+            document.getElementById('new-first').value = '';
+            document.getElementById('new-last').value = '';
+            document.getElementById('new-code').value = '';
+        }
+
+        async function adminDeleteUser(id) {
+            if(confirm("Permanently delete this participant?")) await db.ref(`users/${id}`).remove();
+        }
+
+        async function adminUpdateMatchData() {
+            const id = document.getElementById('adm-match-id').value;
+            if(!id) return alert("Enter Match #");
+            
+            const update = {};
+            const fields = { a: 'adm-team-a', b: 'adm-team-b', v: 'adm-venue', c: 'adm-city', t: 'adm-time', type: 'adm-type' };
+            
+            Object.keys(fields).forEach(key => {
+                const val = document.getElementById(fields[key]).value;
+                if(val) update[key] = val;
+            });
+
+            await db.ref(`matches/${id}`).update(update);
+            alert("Match Updated");
+        }
+
+        async function adminSetResult() {
+            const id = document.getElementById('res-match-id').value;
+            const res = document.getElementById('res-winner').value;
+            if(!id || !res) return alert("Select Match and Winner");
+
+            const currentRankings = Object.entries(state.users).map(([uid, user]) => {
+                let score = 0;
+                const picks = user.picks || {};
+                state.matches.forEach(m => { if (m && m.res && picks[m.id] === m.res) score++; });
+                return { uid, score };
+            }).sort((a, b) => b.score - a.score);
+
+            const rankUpdates = {};
+            currentRankings.forEach((item, index) => {
+                rankUpdates[`users/${item.uid}/prevRank`] = index + 1;
+            });
+
+            await db.ref().update(rankUpdates);
+            await db.ref(`matches/${id}/res`).set(res);
+            alert("Result Saved & Ranks Snapshotted");
+        }
+    </script>
+</body>
+</html>
